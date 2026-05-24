@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>pinpad v2</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar" aria-label="Board controls">
+        <div class="brand">
+          <p class="eyebrow">Personal board</p>
+          <div class="title-row">
+            <input id="boardTitle" class="board-title" aria-label="Board name" maxlength="42">
+            <button id="editTitle" class="icon-button" type="button" title="Edit board name">Edit</button>
+          </div>
+        </div>
+        <div class="actions">
+          <label class="search">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Find notes">
+          </label>
+          <button id="addNote" class="primary" type="button">New note</button>
+          <button id="exportNotes" type="button">Export</button>
+          <label class="import-button">
+            Import
+            <input id="importNotes" type="file" accept="application/json">
+          </label>
+          <button id="resetBoard" class="ghost" type="button">Reset notes</button>
+        </div>
+      </header>
+
+      <section class="board-wrap" aria-label="Sticky note board">
+        <div class="board-meta">
+          <span id="noteCount">0 notes</span>
+          <span>v2 preview</span>
+        </div>
+        <div id="board" class="board">
+          <div class="desk-line" aria-hidden="true"></div>
+          <div id="characterCorner" class="character-corner" aria-live="polite">
+            <div id="characterBubble" class="character-bubble" hidden></div>
+            <button id="characterButton" class="character-button" type="button" title="Say hello">
+              <span class="dog dog-one" aria-hidden="true">
+                <span class="ear left"></span>
+                <span class="ear right"></span>
+                <span class="face"></span>
+              </span>
+              <span class="dog dog-two" aria-hidden="true">
+                <span class="ear left"></span>
+                <span class="ear right"></span>
+                <span class="face"></span>
+              </span>
+              <span class="character-label">desk buddies</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="noteTemplate">
+      <article class="note" data-note-id="">
+        <div class="note-pin" aria-hidden="true"></div>
+        <div class="note-toolbar">
+          <button class="pin-note" type="button" title="Bring forward">Pin</button>
+          <select class="color-note" title="Color">
+            <option value="butter">Butter</option>
+            <option value="mint">Mint</option>
+            <option value="sky">Sky</option>
+            <option value="peach">Peach</option>
+            <option value="lilac">Lilac</option>
+          </select>
+          <button class="open-note" type="button" title="Open detail">Open</button>
+          <button class="delete-note" type="button" title="Delete">Delete</button>
+        </div>
+        <input class="note-title" aria-label="Note title" maxlength="48">
+        <textarea class="note-body" aria-label="Note text" spellcheck="true"></textarea>
+      </article>
+    </template>
+
+    <dialog id="noteDialog" class="note-dialog" aria-labelledby="dialogTitle">
+      <form method="dialog" class="dialog-panel">
+        <div class="dialog-header">
+          <p class="eyebrow">Focused note</p>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <input id="dialogTitle" class="dialog-title" aria-label="Note title" maxlength="48">
+        <textarea id="dialogBody" class="dialog-body" aria-label="Note text"></textarea>
+        <div class="dialog-actions">
+          <select id="dialogColor" aria-label="Note color">
+            <option value="butter">Butter</option>
+            <option value="mint">Mint</option>
+            <option value="sky">Sky</option>
+            <option value="peach">Peach</option>
+            <option value="lilac">Lilac</option>
+          </select>
+          <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
+          <button class="primary" value="close" type="submit">Done</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>

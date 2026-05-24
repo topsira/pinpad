@@ -62,3 +62,33 @@
 ### Verification
 
 - Documentation-only change; no app runtime check required.
+
+## 2026-05-25 - v2 Personal Pinpad Branch
+
+### Done
+
+- Created `feature/v2-personal-pinpad` for safe v2 work.
+- Added the isolated `v2/` demo path so the public root v1 can stay unchanged.
+- Added editable board title settings with `localStorage` persistence.
+- Added a mobile focused-note dialog for clearer reading and editing.
+- Added a lightweight two-character corner placeholder for the future dog assets.
+- Refreshed the v2 visual direction toward a softer personal desk board.
+
+### Decisions
+
+- Keep dog character assets as replaceable files under `v2/assets/characters/`.
+- Keep export/import note-only for this first v2 pass to reduce format risk.
+- Treat mobile as a board overview first, with detail editing through the dialog.
+
+### Pending
+
+- Add real dog cutout assets when the source images are available.
+- Decide whether to merge this branch so GitHub Pages exposes `/pinpad/v2/`.
+- Decide later whether v2 should replace the root page.
+
+### Verification
+
+- `node --check app.js` passed.
+- `node --check v2/app.js` passed.
+- Desktop render checked at `http://127.0.0.1:4173/v2/`.
+- Mobile 390px render checked with note detail open/edit/close flow.
