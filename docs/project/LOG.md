@@ -92,3 +92,24 @@
 - `node --check v2/app.js` passed.
 - Desktop render checked at `http://127.0.0.1:4173/v2/`.
 - Mobile 390px render checked with note detail open/edit/close flow.
+
+## 2026-05-25 - Robert Reference Study
+
+### Done
+
+- Reviewed the exported `stick it with robert.pdf` reference.
+- Added `docs/project/ROBERT_REFERENCE_PLAN.md` with lessons, risks, and suggested next phases for `pinpad`.
+
+### Decisions
+
+- Treat the reference as product inspiration, not a visual copy target.
+- Prioritize constraints, mobile detail flow, functional stickers, and small character personality over large feature expansion.
+
+### Pending
+
+- Decide whether to convert the new reference plan into GitHub Issues.
+- Review whether v2 should merge as `/pinpad/v2/` before adding dog assets.
+
+### Verification
+
+- Documentation-only change; no app runtime check required.
