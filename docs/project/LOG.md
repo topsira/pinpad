@@ -43,11 +43,13 @@
 - Added `ISSUE_ROADMAP.md` with issue-ready vertical slices.
 - Added this project log.
 - Added setup and deployment notes in `docs/project/SETUP.md`.
+- Added `AGENTS.md` as the project-level Codex working agreement.
 
 ### Decisions
 
 - Treat project memory files as portable repo context.
 - Treat local Codex skills as machine-specific workflow tools, not app dependencies.
+- Use `AGENTS.md` to preserve TOPSIRA's baseline agent rules inside this repo.
 
 ### Pending
 
@@ -60,4 +62,3 @@
 ### Verification
 
 - Documentation-only change; no app runtime check required.
-
