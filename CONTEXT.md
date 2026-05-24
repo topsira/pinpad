@@ -72,6 +72,7 @@ Use these skills when the task matches:
 - `improve-codebase-architecture`: revisit structure if `app.js` becomes hard to safely change.
 - `to-issues`: convert roadmap or plans into small implementation issues.
 - `github`: inspect or manage repository, Pages, Actions, issues, or pull requests.
+- `scrutinize` from 9arm: review plans, diffs, or design choices from an outsider perspective before shipping meaningful changes.
 
 ## Portable Memory vs Local Skills
 
@@ -85,4 +86,3 @@ Local Codex skills in `~/.codex/skills` are machine-specific. They guide how Cod
 - Should archived notes stay in local storage or export-only backups?
 - Should markdown preview support be limited to links and code snippets?
 - Should future sync use a private gist, Supabase, Firebase, or another private backend?
-

@@ -26,6 +26,7 @@ These local Codex skills are part of TOPSIRA's preferred workflow. They are not 
 - `triage`: Use for incoming issue cleanup, bug/feature classification, and preparing work for later implementation.
 - `zoom-out`: Use when context is unclear or the local code change needs broader product/architecture framing.
 - `improve-codebase-architecture`: Use when the project grows hard to test, hard to change, or tightly coupled.
+- `scrutinize` from 9arm: Use for plan, PR, diff, or design review. Question whether the change should exist, trace end-to-end, and verify claims.
 
 ## Engineering Rules
 
@@ -79,4 +80,3 @@ Deployment source:
 
 - Branch: `main`
 - Folder: `/(root)`
-
