@@ -1,6 +1,14 @@
 const NOTES_KEY = "pinpad.v2.notes";
 const SETTINGS_KEY = "pinpad.settings.v1";
 const COLORS = ["butter", "mint", "sky", "peach", "lilac"];
+const STICKERS = {
+  none: { label: "No sticker", text: "" },
+  idea: { label: "Idea", text: "idea" },
+  focus: { label: "Focus", text: "focus" },
+  saved: { label: "Saved", text: "save" },
+  later: { label: "Later", text: "later" },
+  soft: { label: "Soft", text: "soft" }
+};
 const DEFAULT_SETTINGS = {
   boardTitle: "pinpad : TOPSIRA",
   theme: "soft-desk",
@@ -21,6 +29,7 @@ const noteDialog = document.querySelector("#noteDialog");
 const dialogTitle = document.querySelector("#dialogTitle");
 const dialogBody = document.querySelector("#dialogBody");
 const dialogColor = document.querySelector("#dialogColor");
+const dialogSticker = document.querySelector("#dialogSticker");
 const dialogDelete = document.querySelector("#dialogDelete");
 const characterButton = document.querySelector("#characterButton");
 const characterBubble = document.querySelector("#characterBubble");
@@ -66,6 +75,7 @@ function sampleNotes() {
       title: "Inbox",
       body: "Drop quick thoughts here. Tap me on mobile for a clear view.",
       color: "butter",
+      sticker: "idea",
       x: 70,
       y: 70,
       z: 1,
@@ -77,6 +87,7 @@ function sampleNotes() {
       title: "Saved text",
       body: "Paste quotes, links, prompts, tiny reminders, or anything you want to keep nearby.",
       color: "mint",
+      sticker: "saved",
       x: 350,
       y: 125,
       z: 2,
@@ -88,6 +99,7 @@ function sampleNotes() {
       title: "Desk buddies",
       body: "Soon: your two dog characters can live in the corner as tiny companions.",
       color: "sky",
+      sticker: "soft",
       x: 185,
       y: 330,
       z: 3,
@@ -143,6 +155,7 @@ function createNote(overrides = {}) {
     title: "Untitled",
     body: "",
     color: COLORS[notes.length % COLORS.length],
+    sticker: "none",
     x: Math.max(22, Math.min(120 + notes.length * 24, logicalWidth - 250)),
     y: Math.max(22, Math.min(90 + notes.length * 24, logicalHeight - 210)),
     z: ++topZ,
@@ -179,12 +192,15 @@ function renderNote(note) {
   const title = fragment.querySelector(".note-title");
   const body = fragment.querySelector(".note-body");
   const color = fragment.querySelector(".color-note");
+  const sticker = fragment.querySelector(".sticker-note");
+  const stickerBadge = fragment.querySelector(".note-sticker");
   const pin = fragment.querySelector(".pin-note");
   const open = fragment.querySelector(".open-note");
   const remove = fragment.querySelector(".delete-note");
 
   element.dataset.noteId = note.id;
   element.dataset.color = note.color;
+  element.dataset.sticker = note.sticker;
   const scale = boardScale();
   element.style.left = `${note.x * scale}px`;
   element.style.top = `${note.y * scale}px`;
@@ -193,11 +209,15 @@ function renderNote(note) {
   title.value = note.title;
   body.value = note.body;
   color.value = note.color;
+  sticker.value = note.sticker;
+  stickerBadge.textContent = STICKERS[note.sticker].text;
+  stickerBadge.hidden = note.sticker === "none";
 
   element.addEventListener("pointerdown", startDrag);
   title.addEventListener("input", (event) => updateNote(note.id, { title: event.target.value }));
   body.addEventListener("input", (event) => updateNote(note.id, { body: event.target.value }));
   color.addEventListener("change", (event) => updateNote(note.id, { color: event.target.value }, true));
+  sticker.addEventListener("change", (event) => updateNote(note.id, { sticker: event.target.value }, true));
   pin.addEventListener("click", () => bringForward(note.id));
   open.addEventListener("click", () => openNote(note.id));
   remove.addEventListener("click", () => deleteNote(note.id));
@@ -293,6 +313,7 @@ function openNote(id) {
   dialogTitle.value = note.title;
   dialogBody.value = note.body;
   dialogColor.value = note.color;
+  dialogSticker.value = note.sticker;
   if (!noteDialog.open) noteDialog.showModal();
   dialogTitle.focus();
 }
@@ -312,7 +333,8 @@ function applySearch() {
   document.querySelectorAll(".note").forEach((element) => {
     const id = element.dataset.noteId;
     const note = notes.find((item) => item.id === id);
-    const haystack = `${note.title} ${note.body}`.toLowerCase();
+    const sticker = STICKERS[note.sticker]?.label || "";
+    const haystack = `${note.title} ${note.body} ${sticker}`.toLowerCase();
     element.classList.toggle("is-hidden", query.length > 0 && !haystack.includes(query));
   });
   updateCount();
@@ -357,6 +379,7 @@ function normalizeNote(note, index = 0) {
     title: typeof note.title === "string" ? note.title : "Untitled",
     body: typeof note.body === "string" ? note.body : "",
     color: COLORS.includes(note.color) ? note.color : COLORS[index % COLORS.length],
+    sticker: STICKERS[note.sticker] ? note.sticker : "none",
     x: Number.isFinite(note.x) ? note.x : 80 + index * 24,
     y: Number.isFinite(note.y) ? note.y : 80 + index * 24,
     z: Number.isFinite(note.z) ? note.z : index + 1,
@@ -443,6 +466,7 @@ searchInput.addEventListener("input", applySearch);
 dialogTitle.addEventListener("input", (event) => syncDialogNote({ title: event.target.value }));
 dialogBody.addEventListener("input", (event) => syncDialogNote({ body: event.target.value }));
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
+dialogSticker.addEventListener("change", (event) => syncDialogNote({ sticker: event.target.value }));
 dialogDelete.addEventListener("click", () => {
   if (activeNoteId) deleteNote(activeNoteId);
 });

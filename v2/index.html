@@ -67,6 +67,7 @@
     <template id="noteTemplate">
       <article class="note" data-note-id="">
         <div class="note-pin" aria-hidden="true"></div>
+        <div class="note-sticker" aria-hidden="true"></div>
         <div class="note-toolbar">
           <button class="pin-note" type="button" title="Bring forward">Pin</button>
           <select class="color-note" title="Color">
@@ -75,6 +76,14 @@
             <option value="sky">Sky</option>
             <option value="peach">Peach</option>
             <option value="lilac">Lilac</option>
+          </select>
+          <select class="sticker-note" title="Sticker">
+            <option value="none">No sticker</option>
+            <option value="idea">Idea</option>
+            <option value="focus">Focus</option>
+            <option value="saved">Saved</option>
+            <option value="later">Later</option>
+            <option value="soft">Soft</option>
           </select>
           <button class="open-note" type="button" title="Open detail">Open</button>
           <button class="delete-note" type="button" title="Delete">Delete</button>
@@ -99,6 +108,14 @@
             <option value="sky">Sky</option>
             <option value="peach">Peach</option>
             <option value="lilac">Lilac</option>
+          </select>
+          <select id="dialogSticker" aria-label="Note sticker">
+            <option value="none">No sticker</option>
+            <option value="idea">Idea</option>
+            <option value="focus">Focus</option>
+            <option value="saved">Saved</option>
+            <option value="later">Later</option>
+            <option value="soft">Soft</option>
           </select>
           <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
           <button class="primary" value="close" type="submit">Done</button>

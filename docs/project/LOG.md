@@ -139,3 +139,30 @@
 - `node --check v2/app.js` passed.
 - Desktop and mobile Chrome headless checks passed with no console errors.
 - Mobile 390px render checked with notes inside the board and memory modal opening correctly.
+
+## 2026-05-25 - Sticker Marker Demo
+
+### Done
+
+- Added `docs/project/STICKER_PLAN.md`.
+- Added a first sticker marker system for v2 notes.
+- Added one optional marker per note: Idea, Focus, Saved, Later, or Soft.
+- Added sticker editing from desktop note controls and the mobile detail modal.
+- Included sticker data in note persistence, export/import compatibility, and search matching.
+
+### Decisions
+
+- Treat stickers as functional note markers first.
+- Delay free-floating decorative stickers until the marker model is validated.
+
+### Pending
+
+- Decide whether `Soft` should be renamed to `Personal`, `Home`, or another label.
+- Decide whether to add sticker filtering next to search.
+
+### Verification
+
+- `node --check app.js` passed.
+- `node --check v2/app.js` passed.
+- Desktop Chrome headless check passed with no note or toolbar overflow.
+- Mobile Chrome headless check passed with sticker editing through the detail modal.
