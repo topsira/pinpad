@@ -24,6 +24,32 @@ const dialogColor = document.querySelector("#dialogColor");
 const dialogDelete = document.querySelector("#dialogDelete");
 const characterButton = document.querySelector("#characterButton");
 const characterBubble = document.querySelector("#characterBubble");
+const memoryDialog = document.querySelector("#memoryDialog");
+const memoryTitle = document.querySelector("#memoryTitle");
+const memoryImage = document.querySelector("#memoryImage");
+const memoryCaption = document.querySelector("#memoryCaption");
+const memoryCards = document.querySelectorAll(".memory-card");
+
+const MEMORIES = {
+  spySmile: {
+    title: "Spy peek-a-note",
+    image: "assets/characters/spy-smile-card.jpg",
+    alt: "Spy smiling from a blanket",
+    caption: "แอบโผล่มาเฝ้า note นิดนึง วันนี้มีอะไรอยากเก็บไว้ไหม"
+  },
+  nongfah: {
+    title: "Nongfah and Spy",
+    image: "assets/characters/nongfah-card.jpg",
+    alt: "Nongfah with Spy",
+    caption: "วันนุ่ม ๆ ที่เหมาะกับการเก็บไอเดียดี ๆ ไว้บนบอร์ด"
+  },
+  topIploy: {
+    title: "TOP and IPLOY",
+    image: "assets/characters/top-iploy-card.jpg",
+    alt: "TOP and IPLOY with a dog",
+    caption: "เพื่อนตัวน้อยพร้อมนั่งข้าง ๆ ระหว่างจัดความคิด"
+  }
+};
 
 let settings = loadSettings();
 let notes = loadNotes();
@@ -345,7 +371,8 @@ function showCharacterMessage() {
     "เก็บไอเดียไว้ตรงนี้",
     "วันนี้มี note ใหม่ไหม",
     "จัดโต๊ะแล้วค่อยลุยต่อ",
-    "ไอเดียดี ๆ ต้องปักไว้"
+    "ไอเดียดี ๆ ต้องปักไว้",
+    "Spy & Gaga เฝ้าบอร์ดให้อยู่"
   ];
   characterBubble.textContent = messages[Math.floor(Math.random() * messages.length)];
   characterBubble.hidden = false;
@@ -353,6 +380,17 @@ function showCharacterMessage() {
   bubbleTimer = setTimeout(() => {
     characterBubble.hidden = true;
   }, 2600);
+}
+
+function openMemory(key) {
+  const memory = MEMORIES[key];
+  if (!memory) return;
+
+  memoryTitle.textContent = memory.title;
+  memoryImage.src = memory.image;
+  memoryImage.alt = memory.alt;
+  memoryCaption.textContent = memory.caption;
+  if (!memoryDialog.open) memoryDialog.showModal();
 }
 
 function tiltFor(id) {
@@ -412,6 +450,9 @@ noteDialog.addEventListener("close", () => {
   activeNoteId = null;
 });
 characterButton.addEventListener("click", showCharacterMessage);
+memoryCards.forEach((card) => {
+  card.addEventListener("click", () => openMemory(card.dataset.memory));
+});
 window.addEventListener("pointermove", moveDrag);
 window.addEventListener("pointerup", endDrag);
 window.addEventListener("pointercancel", endDrag);

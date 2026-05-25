@@ -39,20 +39,25 @@
         </div>
         <div id="board" class="board">
           <div class="desk-line" aria-hidden="true"></div>
+          <aside class="memory-rail" aria-label="Memory stickers">
+            <button class="memory-card" type="button" data-memory="spySmile" title="Open Spy memory">
+              <img src="assets/characters/spy-smile-card.jpg" alt="Spy smiling from a blanket">
+              <span>peek-a-note</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="nongfah" title="Open Nongfah memory">
+              <img src="assets/characters/nongfah-card.jpg" alt="Nongfah with Spy">
+              <span>soft day</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="topIploy" title="Open TOP and IPLOY memory">
+              <img src="assets/characters/top-iploy-card.jpg" alt="TOP and IPLOY with a dog">
+              <span>park buddy</span>
+            </button>
+          </aside>
           <div id="characterCorner" class="character-corner" aria-live="polite">
             <div id="characterBubble" class="character-bubble" hidden></div>
             <button id="characterButton" class="character-button" type="button" title="Say hello">
-              <span class="dog dog-one" aria-hidden="true">
-                <span class="ear left"></span>
-                <span class="ear right"></span>
-                <span class="face"></span>
-              </span>
-              <span class="dog dog-two" aria-hidden="true">
-                <span class="ear left"></span>
-                <span class="ear right"></span>
-                <span class="face"></span>
-              </span>
-              <span class="character-label">desk buddies</span>
+              <img class="character-duo" src="assets/characters/spy-gaga-cutout.png" alt="Spy and Gaga">
+              <span class="character-label">Spy &amp; Gaga</span>
             </button>
           </div>
         </div>
@@ -98,6 +103,20 @@
           <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
           <button class="primary" value="close" type="submit">Done</button>
         </div>
+      </form>
+    </dialog>
+
+    <dialog id="memoryDialog" class="memory-dialog" aria-labelledby="memoryTitle">
+      <form method="dialog" class="memory-panel">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Memory sticker</p>
+            <h2 id="memoryTitle" class="memory-title">Spy &amp; Gaga</h2>
+          </div>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <img id="memoryImage" class="memory-image" src="assets/characters/spy-smile-card.jpg" alt="">
+        <p id="memoryCaption" class="memory-caption"></p>
       </form>
     </dialog>
 

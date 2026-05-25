@@ -326,35 +326,102 @@ button:hover,
   display: none;
 }
 
+.memory-rail {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  z-index: 80;
+  display: flex;
+  align-items: end;
+  gap: 10px;
+}
+
+.memory-card {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  width: 74px;
+  min-height: 96px;
+  padding: 6px 6px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 7px;
+  color: var(--ink);
+  background: #fffaf0;
+  box-shadow: 0 10px 24px rgba(84, 50, 26, 0.14);
+  transform: rotate(-2deg);
+}
+
+.memory-card:nth-child(2) {
+  transform: translateY(-5px) rotate(2deg);
+}
+
+.memory-card:nth-child(3) {
+  transform: rotate(1deg);
+}
+
+.memory-card:hover {
+  transform: translateY(-4px) rotate(0deg);
+}
+
+.memory-card img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.memory-card span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 850;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .character-corner {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
+  right: 12px;
+  bottom: 10px;
   z-index: 900;
   display: grid;
   justify-items: end;
-  gap: 8px;
+  gap: 4px;
   pointer-events: none;
 }
 
 .character-button {
   display: grid;
-  grid-template-columns: 44px 44px;
-  grid-template-rows: 52px auto;
-  align-items: end;
+  grid-template-rows: minmax(98px, auto) auto;
+  align-items: center;
   justify-content: center;
-  gap: 0 4px;
-  width: 118px;
-  min-height: 86px;
-  padding: 8px;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 250, 240, 0.78);
-  box-shadow: 0 10px 24px rgba(84, 50, 26, 0.12);
+  width: 132px;
+  min-height: 122px;
+  padding: 3px 8px 8px;
+  border-color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, rgba(255, 250, 240, 0.94), rgba(255, 250, 240, 0.74));
+  box-shadow: 0 12px 26px rgba(84, 50, 26, 0.16);
   pointer-events: auto;
 }
 
+.character-button:hover .character-duo {
+  animation: buddy-bob 760ms ease;
+}
+
+.character-duo {
+  display: block;
+  width: min(108px, 100%);
+  height: 100px;
+  margin: -18px auto -2px;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 12px rgba(66, 37, 19, 0.18));
+  transform-origin: 50% 100%;
+  animation: floaty 4s ease-in-out infinite;
+}
+
 .character-label {
-  grid-column: 1 / -1;
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 800;
@@ -453,7 +520,8 @@ button:hover,
   pointer-events: none;
 }
 
-.note-dialog {
+.note-dialog,
+.memory-dialog {
   width: min(520px, calc(100vw - 22px));
   border: 0;
   border-radius: 12px;
@@ -462,12 +530,14 @@ button:hover,
   background: transparent;
 }
 
-.note-dialog::backdrop {
+.note-dialog::backdrop,
+.memory-dialog::backdrop {
   background: rgba(58, 39, 25, 0.32);
   backdrop-filter: blur(4px);
 }
 
-.dialog-panel {
+.dialog-panel,
+.memory-panel {
   display: grid;
   gap: 12px;
   padding: 16px;
@@ -508,6 +578,32 @@ button:hover,
   resize: vertical;
 }
 
+.memory-dialog {
+  width: min(430px, calc(100vw - 22px));
+}
+
+.memory-title {
+  margin: 2px 0 0;
+  font-size: 1.25rem;
+  line-height: 1.1;
+}
+
+.memory-image {
+  width: 100%;
+  max-height: min(64vh, 560px);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.memory-caption {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 @keyframes pop-in {
   from {
     opacity: 0;
@@ -537,6 +633,18 @@ button:hover,
   }
   50% {
     transform: translateY(-4px);
+  }
+}
+
+@keyframes buddy-bob {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-5px) rotate(-2deg);
+  }
+  70% {
+    transform: translateY(-2px) rotate(2deg);
   }
 }
 
@@ -620,38 +728,47 @@ button:hover,
   }
 
   .character-button {
-    width: 96px;
-    min-height: 76px;
-    grid-template-columns: 36px 36px;
-    grid-template-rows: 44px auto;
+    width: 104px;
+    min-height: 98px;
+    grid-template-rows: 74px auto;
+    padding: 2px 6px 6px;
   }
 
-  .dog {
-    width: 34px;
-    height: 34px;
-  }
-
-  .ear {
-    width: 12px;
-    height: 15px;
-  }
-
-  .face::before,
-  .face::after {
-    top: 15px;
+  .character-duo {
+    width: 88px;
+    height: 76px;
+    margin-top: -13px;
   }
 
   .character-label {
     font-size: 0.62rem;
   }
 
-  .note-dialog {
+  .memory-rail {
+    bottom: 10px;
+    left: 10px;
+    gap: 6px;
+  }
+
+  .memory-card {
+    width: 56px;
+    min-height: 74px;
+    padding: 5px;
+  }
+
+  .memory-card span {
+    font-size: 0.54rem;
+  }
+
+  .note-dialog,
+  .memory-dialog {
     width: 100vw;
     max-width: none;
     margin: auto 0 0;
   }
 
-  .dialog-panel {
+  .dialog-panel,
+  .memory-panel {
     border-radius: 14px 14px 0 0;
     padding-bottom: max(16px, env(safe-area-inset-bottom));
   }

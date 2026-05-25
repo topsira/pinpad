@@ -113,3 +113,29 @@
 ### Verification
 
 - Documentation-only change; no app runtime check required.
+
+## 2026-05-25 - Character Asset Demo
+
+### Done
+
+- Added optimized web demo assets for the dog cutout and memory cards.
+- Replaced the placeholder dog shapes with the transparent Spy and Gaga cutout.
+- Added a small memory card rail using the personal images, including people.
+- Added a memory modal so each card can be previewed larger without crowding the board.
+
+### Decisions
+
+- Use optimized derivative assets in the app so public v2 loads faster.
+- Keep the character corner small and keep memory photos as optional card interactions.
+
+### Pending
+
+- Decide whether to keep all three memory cards, reduce to dog-only, or rotate cards randomly.
+- Decide whether the original large source images should stay tracked long term or only optimized web assets should be kept.
+
+### Verification
+
+- `node --check app.js` passed.
+- `node --check v2/app.js` passed.
+- Desktop and mobile Chrome headless checks passed with no console errors.
+- Mobile 390px render checked with notes inside the board and memory modal opening correctly.
