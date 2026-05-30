@@ -82,30 +82,7 @@
         <div class="note-pin" aria-hidden="true"></div>
         <div class="note-sticker" aria-hidden="true"></div>
         <div class="note-toolbar">
-          <button class="pin-note" type="button" title="Bring forward">Pin</button>
-          <select class="type-note" title="Paper">
-            <option value="plain">Plain</option>
-            <option value="checklist">Checklist</option>
-            <option value="quote">Quote</option>
-            <option value="tiny">Tiny</option>
-          </select>
-          <select class="color-note" title="Color">
-            <option value="butter">Butter</option>
-            <option value="mint">Mint</option>
-            <option value="sky">Sky</option>
-            <option value="peach">Peach</option>
-            <option value="lilac">Lilac</option>
-          </select>
-          <select class="sticker-note" title="Sticker">
-            <option value="none">No sticker</option>
-            <option value="idea">Idea</option>
-            <option value="focus">Focus</option>
-            <option value="saved">Saved</option>
-            <option value="later">Later</option>
-            <option value="soft">Soft</option>
-          </select>
           <button class="open-note" type="button" title="Open detail">Open</button>
-          <button class="delete-note" type="button" title="Delete">Delete</button>
         </div>
         <input class="note-title" aria-label="Note title" maxlength="48">
         <div class="checklist-preview" aria-hidden="true"></div>
@@ -120,29 +97,45 @@
           <button class="icon-button" value="close" type="submit" title="Close">Close</button>
         </div>
         <input id="dialogTitle" class="dialog-title" aria-label="Note title" maxlength="48">
+        <div class="dialog-controls">
+          <label>
+            <span>Paper</span>
+            <select id="dialogType" aria-label="Paper type">
+              <option value="plain">Plain</option>
+              <option value="checklist">Checklist</option>
+              <option value="quote">Quote</option>
+              <option value="tiny">Tiny</option>
+            </select>
+          </label>
+          <label>
+            <span>Color</span>
+            <select id="dialogColor" aria-label="Note color">
+              <option value="butter">Butter</option>
+              <option value="mint">Mint</option>
+              <option value="sky">Sky</option>
+              <option value="peach">Peach</option>
+              <option value="lilac">Lilac</option>
+            </select>
+          </label>
+          <label>
+            <span>Sticker</span>
+            <select id="dialogSticker" aria-label="Note sticker">
+              <option value="none">No sticker</option>
+              <option value="idea">Idea</option>
+              <option value="focus">Focus</option>
+              <option value="saved">Saved</option>
+              <option value="later">Later</option>
+              <option value="soft">Soft</option>
+            </select>
+          </label>
+        </div>
         <textarea id="dialogBody" class="dialog-body" aria-label="Note text"></textarea>
+        <div id="dialogChecklist" class="dialog-checklist" hidden>
+          <div id="dialogChecklistItems" class="dialog-checklist-items"></div>
+          <button id="addChecklistItem" class="ghost" type="button">Add task</button>
+        </div>
         <div class="dialog-actions">
-          <select id="dialogColor" aria-label="Note color">
-            <option value="butter">Butter</option>
-            <option value="mint">Mint</option>
-            <option value="sky">Sky</option>
-            <option value="peach">Peach</option>
-            <option value="lilac">Lilac</option>
-          </select>
-          <select id="dialogType" aria-label="Paper type">
-            <option value="plain">Plain</option>
-            <option value="checklist">Checklist</option>
-            <option value="quote">Quote</option>
-            <option value="tiny">Tiny</option>
-          </select>
-          <select id="dialogSticker" aria-label="Note sticker">
-            <option value="none">No sticker</option>
-            <option value="idea">Idea</option>
-            <option value="focus">Focus</option>
-            <option value="saved">Saved</option>
-            <option value="later">Later</option>
-            <option value="soft">Soft</option>
-          </select>
+          <button id="bringForward" type="button">Bring forward</button>
           <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
           <button class="primary" value="close" type="submit">Done</button>
         </div>

@@ -33,6 +33,10 @@ const dialogBody = document.querySelector("#dialogBody");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
 const dialogSticker = document.querySelector("#dialogSticker");
+const dialogChecklist = document.querySelector("#dialogChecklist");
+const dialogChecklistItems = document.querySelector("#dialogChecklistItems");
+const addChecklistItem = document.querySelector("#addChecklistItem");
+const bringForwardButton = document.querySelector("#bringForward");
 const dialogDelete = document.querySelector("#dialogDelete");
 const characterButton = document.querySelector("#characterButton");
 const characterBubble = document.querySelector("#characterBubble");
@@ -124,6 +128,7 @@ function sampleNotes() {
       type: "checklist",
       color: "sky",
       sticker: "focus",
+      checked: [0],
       x: 180,
       y: 335,
       z: 3,
@@ -229,14 +234,9 @@ function renderNote(note) {
   const element = fragment.querySelector(".note");
   const title = fragment.querySelector(".note-title");
   const body = fragment.querySelector(".note-body");
-  const type = fragment.querySelector(".type-note");
-  const color = fragment.querySelector(".color-note");
-  const sticker = fragment.querySelector(".sticker-note");
   const stickerBadge = fragment.querySelector(".note-sticker");
   const checklistPreview = fragment.querySelector(".checklist-preview");
-  const pin = fragment.querySelector(".pin-note");
   const open = fragment.querySelector(".open-note");
-  const remove = fragment.querySelector(".delete-note");
 
   element.dataset.noteId = note.id;
   element.dataset.color = note.color;
@@ -248,24 +248,16 @@ function renderNote(note) {
   element.style.zIndex = note.z;
   element.style.setProperty("--tilt", `${tiltFor(note.id)}deg`);
   title.value = note.title;
+  title.readOnly = true;
   body.value = note.body;
+  body.readOnly = true;
   body.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
-  type.value = note.type;
-  color.value = note.color;
-  sticker.value = note.sticker;
   stickerBadge.textContent = STICKERS[note.sticker].text;
   stickerBadge.hidden = note.sticker === "none";
   renderChecklistPreview(checklistPreview, note);
 
   element.addEventListener("pointerdown", startDrag);
-  title.addEventListener("input", (event) => updateNote(note.id, { title: event.target.value }));
-  body.addEventListener("input", (event) => updateNote(note.id, { body: event.target.value }, true));
-  type.addEventListener("change", (event) => updateNote(note.id, { type: event.target.value }, true));
-  color.addEventListener("change", (event) => updateNote(note.id, { color: event.target.value }, true));
-  sticker.addEventListener("change", (event) => updateNote(note.id, { sticker: event.target.value }, true));
-  pin.addEventListener("click", () => bringForward(note.id));
   open.addEventListener("click", () => openNote(note.id));
-  remove.addEventListener("click", () => deleteNote(note.id));
 
   board.appendChild(fragment);
 }
@@ -359,6 +351,7 @@ function openNote(id) {
   dialogType.value = note.type;
   dialogSticker.value = note.sticker;
   dialogBody.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
+  syncDialogMode(note);
   if (!noteDialog.open) noteDialog.showModal();
   dialogTitle.focus();
 }
@@ -371,6 +364,10 @@ function closeNote() {
 function syncDialogNote(patch) {
   if (!activeNoteId) return;
   updateNote(activeNoteId, patch, true);
+}
+
+function activeNote() {
+  return notes.find((note) => note.id === activeNoteId);
 }
 
 function applySearch() {
@@ -426,6 +423,7 @@ function normalizeNote(note, index = 0) {
     type: TYPES.includes(note.type) ? note.type : "plain",
     color: COLORS.includes(note.color) ? note.color : COLORS[index % COLORS.length],
     sticker: STICKERS[note.sticker] ? note.sticker : "none",
+    checked: Array.isArray(note.checked) ? note.checked.filter(Number.isFinite) : [],
     x: Number.isFinite(note.x) ? note.x : 80 + index * 24,
     y: Number.isFinite(note.y) ? note.y : 80 + index * 24,
     z: Number.isFinite(note.z) ? note.z : index + 1,
@@ -474,7 +472,58 @@ function renderChecklistPreview(container, note) {
   container.replaceChildren(...items.map((item, index) => {
     const row = document.createElement("span");
     row.className = "checklist-row";
-    row.innerHTML = `<span class="check-box">${index === 0 ? "✓" : ""}</span><span>${escapeHTML(item)}</span>`;
+    const checked = note.checked.includes(index);
+    row.classList.toggle("is-checked", checked);
+    row.innerHTML = `<span class="check-box">${checked ? "✓" : ""}</span><span>${escapeHTML(item)}</span>`;
+    return row;
+  }));
+}
+
+function syncDialogMode(note = activeNote()) {
+  if (!note) return;
+  const checklist = note.type === "checklist";
+  dialogBody.hidden = checklist;
+  dialogChecklist.hidden = !checklist;
+  if (checklist) renderDialogChecklist(note);
+}
+
+function renderDialogChecklist(note = activeNote()) {
+  if (!note) return;
+  const items = note.body.split("\n");
+  const visibleItems = items.length ? items : [""];
+
+  dialogChecklistItems.replaceChildren(...visibleItems.map((item, index) => {
+    const row = document.createElement("label");
+    row.className = "dialog-checklist-row";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = note.checked.includes(index);
+    checkbox.addEventListener("change", () => {
+      const current = activeNote();
+      if (!current) return;
+      const checked = new Set(current.checked);
+      if (checkbox.checked) {
+        checked.add(index);
+      } else {
+        checked.delete(index);
+      }
+      syncDialogNote({ checked: [...checked].sort((a, b) => a - b) });
+    });
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = item;
+    input.placeholder = "Task";
+    input.addEventListener("input", () => {
+      const current = activeNote();
+      if (!current) return;
+      const nextItems = current.body.split("\n");
+      nextItems[index] = input.value;
+      updateNote(current.id, { body: nextItems.join("\n") }, true);
+    });
+
+    row.append(checkbox, input);
     return row;
   }));
 }
@@ -550,9 +599,25 @@ dialogBody.addEventListener("input", (event) => syncDialogNote({ body: event.tar
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
   dialogBody.placeholder = event.target.value === "checklist" ? "One task per line" : "Write something...";
-  syncDialogNote({ type: event.target.value });
+  const patch = { type: event.target.value };
+  if (event.target.value === "checklist" && !dialogBody.value.trim()) {
+    patch.body = "First task";
+    dialogBody.value = patch.body;
+  }
+  syncDialogNote(patch);
+  syncDialogMode();
 });
 dialogSticker.addEventListener("change", (event) => syncDialogNote({ sticker: event.target.value }));
+addChecklistItem.addEventListener("click", () => {
+  const note = activeNote();
+  if (!note) return;
+  const nextBody = `${note.body}${note.body.trim() ? "\n" : ""}New task`;
+  updateNote(note.id, { body: nextBody }, true);
+  renderDialogChecklist(activeNote());
+});
+bringForwardButton.addEventListener("click", () => {
+  if (activeNoteId) bringForward(activeNoteId);
+});
 dialogDelete.addEventListener("click", () => {
   if (activeNoteId) deleteNote(activeNoteId);
 });

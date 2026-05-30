@@ -217,6 +217,7 @@ button:hover,
 }
 
 .note {
+  --note-bg: var(--note-butter);
   position: absolute;
   display: grid;
   grid-template-rows: auto auto 1fr;
@@ -225,7 +226,7 @@ button:hover,
   padding: 26px 14px 14px;
   border: 1px solid rgba(64, 42, 30, 0.12);
   border-radius: 7px;
-  background: var(--note-butter);
+  background: var(--note-bg);
   box-shadow: 0 14px 26px rgba(82, 51, 27, 0.16);
   transform: rotate(var(--tilt, -1deg));
   user-select: none;
@@ -233,25 +234,25 @@ button:hover,
 }
 
 .note[data-color="mint"] {
-  background: var(--note-mint);
+  --note-bg: var(--note-mint);
 }
 
 .note[data-color="sky"] {
-  background: var(--note-sky);
+  --note-bg: var(--note-sky);
 }
 
 .note[data-color="peach"] {
-  background: var(--note-peach);
+  --note-bg: var(--note-peach);
 }
 
 .note[data-color="lilac"] {
-  background: var(--note-lilac);
+  --note-bg: var(--note-lilac);
 }
 
 .note[data-type="checklist"] {
   background:
     repeating-linear-gradient(0deg, transparent 0 34px, rgba(96, 68, 42, 0.14) 35px),
-    var(--note-butter);
+    var(--note-bg);
 }
 
 .note[data-type="quote"] .note-body {
@@ -309,6 +310,11 @@ button:hover,
   color: #4e8d86;
   font-size: 0.66rem;
   font-weight: 900;
+}
+
+.checklist-row.is-checked span:last-child {
+  color: rgba(43, 37, 33, 0.56);
+  text-decoration: line-through;
 }
 
 .note-sticker {
@@ -428,6 +434,10 @@ button:hover,
   max-width: 72px;
 }
 
+.open-note {
+  width: 100%;
+}
+
 .note-title,
 .note-body {
   width: 100%;
@@ -435,6 +445,7 @@ button:hover,
   color: var(--ink);
   background: transparent;
   outline: none;
+  pointer-events: none;
   user-select: text;
 }
 
@@ -679,11 +690,34 @@ button:hover,
 }
 
 .dialog-header,
-.dialog-actions {
+.dialog-actions,
+.dialog-controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.dialog-controls {
+  align-items: stretch;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.dialog-controls label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dialog-controls select,
+.dialog-actions button,
+.dialog-checklist button {
+  width: 100%;
 }
 
 .dialog-title,
@@ -707,6 +741,47 @@ button:hover,
   padding: 12px;
   line-height: 1.5;
   resize: vertical;
+}
+
+.dialog-checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.dialog-checklist[hidden],
+.dialog-body[hidden] {
+  display: none;
+}
+
+.dialog-checklist-items {
+  display: grid;
+  gap: 8px;
+}
+
+.dialog-checklist-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+  background: white;
+}
+
+.dialog-checklist-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.dialog-checklist-row input[type="text"] {
+  min-height: 30px;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  outline: none;
 }
 
 .memory-dialog {
@@ -826,13 +901,7 @@ button:hover,
   }
 
   .note-toolbar {
-    justify-content: space-between;
-  }
-
-  .note-toolbar .pin-note,
-  .note-toolbar .delete-note,
-  .note-toolbar select {
-    display: none;
+    margin-bottom: 6px;
   }
 
   .note-toolbar button {
@@ -955,6 +1024,10 @@ button:hover,
 
   .dialog-actions {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-controls {
+    grid-template-columns: 1fr;
   }
 }
