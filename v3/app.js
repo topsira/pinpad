@@ -536,6 +536,9 @@ addChecklistButton.addEventListener("click", () => createNote({
 exportButton.addEventListener("click", exportNotes);
 importInput.addEventListener("change", importNotes);
 resetButton.addEventListener("click", () => {
+  const confirmed = confirm("Reset all notes on this v3 board? This cannot be undone.");
+  if (!confirmed) return;
+
   notes = sampleNotes();
   topZ = Math.max(1, ...notes.map((note) => note.z || 1));
   saveNotes();
