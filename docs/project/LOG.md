@@ -166,3 +166,37 @@
 - `node --check v2/app.js` passed.
 - Desktop Chrome headless check passed with no note or toolbar overflow.
 - Mobile Chrome headless check passed with sticker editing through the detail modal.
+
+## 2026-05-30 - v3 Preview Demo
+
+### Done
+
+- Confirmed `main` and `origin/main` were in sync before starting.
+- Added `docs/project/V3_PLAN.md`.
+- Added a separate `/v3/` preview so `/v2/` remains untouched for current testers.
+- Added three new memory images and optimized web card versions.
+- Added six memory cards to the v3 memory rail.
+- Added paper type experiments: Plain, Checklist, Quote, and Tiny.
+- Added a dedicated Checklist button for fast checklist paper creation.
+- Isolated v3 browser storage under `pinpad.v3.*`.
+
+### Decisions
+
+- Do not edit `/v2/` while someone is actively testing it.
+- Let v3 reference shared optimized character assets instead of duplicating them under `/v3/`.
+- Keep checklist as a note type first, not a separate data model.
+
+### Pending
+
+- Decide whether v3 should stay at `/v3/` or later be promoted into `/v2/`.
+- Decide whether to add sticker filtering or tidy board next.
+- Decide whether memory rail should stay always visible when six cards are present.
+
+### Verification
+
+- `git fetch origin` confirmed local `main` matched `origin/main` before changes.
+- `node --check app.js` passed.
+- `node --check v2/app.js` passed.
+- `node --check v3/app.js` passed.
+- Desktop Chrome headless check passed with no note or toolbar overflow.
+- Mobile 390px Chrome headless check passed with no note overflow.

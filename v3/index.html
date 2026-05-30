@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>pinpad v3</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar" aria-label="Board controls">
+        <div class="brand">
+          <p class="eyebrow">Personal board</p>
+          <div class="title-row">
+            <input id="boardTitle" class="board-title" aria-label="Board name" maxlength="42">
+            <button id="editTitle" class="icon-button" type="button" title="Edit board name">Edit</button>
+          </div>
+        </div>
+        <div class="actions">
+          <label class="search">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Find notes">
+          </label>
+          <button id="addNote" class="primary" type="button">New note</button>
+          <button id="addChecklist" type="button">Checklist</button>
+          <button id="exportNotes" type="button">Export</button>
+          <label class="import-button">
+            Import
+            <input id="importNotes" type="file" accept="application/json">
+          </label>
+          <button id="resetBoard" class="ghost" type="button">Reset notes</button>
+        </div>
+      </header>
+
+      <section class="board-wrap" aria-label="Sticky note board">
+        <div class="board-meta">
+          <span id="noteCount">0 notes</span>
+          <span>v3 preview</span>
+        </div>
+        <div id="board" class="board">
+          <div class="desk-line" aria-hidden="true"></div>
+          <aside class="memory-rail" aria-label="Memory stickers">
+            <button class="memory-card" type="button" data-memory="spySmile" title="Open Spy memory">
+              <img src="../v2/assets/characters/spy-smile-card.jpg" alt="Spy smiling from a blanket">
+              <span>peek-a-note</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="nongfah" title="Open Nongfah memory">
+              <img src="../v2/assets/characters/nongfah-card.jpg" alt="Nongfah with Spy">
+              <span>soft day</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="topIploy" title="Open TOP and IPLOY memory">
+              <img src="../v2/assets/characters/top-iploy-card.jpg" alt="TOP and IPLOY with a dog">
+              <span>park buddy</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="spyIploy" title="Open Spy and IPLOY memory">
+              <img src="../v2/assets/characters/spy-iploy-card.jpg" alt="Spy and IPLOY walking outside">
+              <span>walk time</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="topIployPaint" title="Open TOP and IPLOY paint memory">
+              <img src="../v2/assets/characters/top-iploy-2-card.jpg" alt="TOP and IPLOY during painting">
+              <span>paint day</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="iployCute" title="Open IPLOY memory">
+              <img src="../v2/assets/characters/iploy-socute-card.jpg" alt="IPLOY sitting with toys">
+              <span>so cute</span>
+            </button>
+          </aside>
+          <div id="characterCorner" class="character-corner" aria-live="polite">
+            <div id="characterBubble" class="character-bubble" hidden></div>
+            <button id="characterButton" class="character-button" type="button" title="Say hello">
+              <img class="character-duo" src="../v2/assets/characters/spy-gaga-cutout.png" alt="Spy and Gaga">
+              <span class="character-label">Spy &amp; Gaga</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <template id="noteTemplate">
+      <article class="note" data-note-id="">
+        <div class="note-pin" aria-hidden="true"></div>
+        <div class="note-sticker" aria-hidden="true"></div>
+        <div class="note-toolbar">
+          <button class="pin-note" type="button" title="Bring forward">Pin</button>
+          <select class="type-note" title="Paper">
+            <option value="plain">Plain</option>
+            <option value="checklist">Checklist</option>
+            <option value="quote">Quote</option>
+            <option value="tiny">Tiny</option>
+          </select>
+          <select class="color-note" title="Color">
+            <option value="butter">Butter</option>
+            <option value="mint">Mint</option>
+            <option value="sky">Sky</option>
+            <option value="peach">Peach</option>
+            <option value="lilac">Lilac</option>
+          </select>
+          <select class="sticker-note" title="Sticker">
+            <option value="none">No sticker</option>
+            <option value="idea">Idea</option>
+            <option value="focus">Focus</option>
+            <option value="saved">Saved</option>
+            <option value="later">Later</option>
+            <option value="soft">Soft</option>
+          </select>
+          <button class="open-note" type="button" title="Open detail">Open</button>
+          <button class="delete-note" type="button" title="Delete">Delete</button>
+        </div>
+        <input class="note-title" aria-label="Note title" maxlength="48">
+        <div class="checklist-preview" aria-hidden="true"></div>
+        <textarea class="note-body" aria-label="Note text" spellcheck="true"></textarea>
+      </article>
+    </template>
+
+    <dialog id="noteDialog" class="note-dialog" aria-labelledby="dialogTitle">
+      <form method="dialog" class="dialog-panel">
+        <div class="dialog-header">
+          <p class="eyebrow">Focused note</p>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <input id="dialogTitle" class="dialog-title" aria-label="Note title" maxlength="48">
+        <textarea id="dialogBody" class="dialog-body" aria-label="Note text"></textarea>
+        <div class="dialog-actions">
+          <select id="dialogColor" aria-label="Note color">
+            <option value="butter">Butter</option>
+            <option value="mint">Mint</option>
+            <option value="sky">Sky</option>
+            <option value="peach">Peach</option>
+            <option value="lilac">Lilac</option>
+          </select>
+          <select id="dialogType" aria-label="Paper type">
+            <option value="plain">Plain</option>
+            <option value="checklist">Checklist</option>
+            <option value="quote">Quote</option>
+            <option value="tiny">Tiny</option>
+          </select>
+          <select id="dialogSticker" aria-label="Note sticker">
+            <option value="none">No sticker</option>
+            <option value="idea">Idea</option>
+            <option value="focus">Focus</option>
+            <option value="saved">Saved</option>
+            <option value="later">Later</option>
+            <option value="soft">Soft</option>
+          </select>
+          <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
+          <button class="primary" value="close" type="submit">Done</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="memoryDialog" class="memory-dialog" aria-labelledby="memoryTitle">
+      <form method="dialog" class="memory-panel">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Memory sticker</p>
+            <h2 id="memoryTitle" class="memory-title">Spy &amp; Gaga</h2>
+          </div>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <img id="memoryImage" class="memory-image" src="../v2/assets/characters/spy-smile-card.jpg" alt="">
+        <p id="memoryCaption" class="memory-caption"></p>
+      </form>
+    </dialog>
+
+    <script src="app.js"></script>
+  </body>
+</html>
