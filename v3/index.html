@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>pinpad v3</title>
-    <link rel="icon" href="data:,">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -22,13 +22,33 @@
             <span>Search</span>
             <input id="searchInput" type="search" placeholder="Find notes">
           </label>
-          <button id="addNote" class="primary" type="button">New note</button>
-          <button id="addChecklist" type="button">Checklist</button>
-          <button id="exportNotes" type="button">Export</button>
-          <label class="import-button">
-            Import
-            <input id="importNotes" type="file" accept="application/json">
-          </label>
+          <button id="addNote" class="primary action-button" type="button">
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <span>New note</span>
+          </button>
+          <button id="addChecklist" class="checklist-action action-button" type="button">
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 3 3 5-6"/><path d="M15 7h4M15 13h4M5 19h14"/></svg>
+            </span>
+            <span>Checklist</span>
+          </button>
+          <details class="file-menu">
+            <summary class="action-button">
+              <span class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M7 7l2-3h6l2 3M6 7v12h12V7"/></svg>
+              </span>
+              <span>Files</span>
+            </summary>
+            <div class="file-menu-panel">
+              <button id="exportNotes" type="button">Export JSON</button>
+              <label class="import-button">
+                Import JSON
+                <input id="importNotes" type="file" accept="application/json">
+              </label>
+            </div>
+          </details>
           <button id="resetBoard" class="danger" type="button">Reset notes</button>
         </div>
       </header>
@@ -67,6 +87,12 @@
             </button>
           </aside>
           <div id="characterCorner" class="character-corner" aria-live="polite">
+            <div id="trashZone" class="trash-zone" aria-label="Drop note here to delete">
+              <span class="trash-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8 7V5h8v2M5 7h14M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14"/></svg>
+              </span>
+              <span>Drop to delete</span>
+            </div>
             <div id="characterBubble" class="character-bubble" hidden></div>
             <button id="characterButton" class="character-button" type="button" title="Say hello">
               <img class="character-duo" src="../v2/assets/characters/spy-gaga-cutout.png" alt="Spy and Gaga">

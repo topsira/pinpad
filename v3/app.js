@@ -23,6 +23,7 @@ const addChecklistButton = document.querySelector("#addChecklist");
 const exportButton = document.querySelector("#exportNotes");
 const importInput = document.querySelector("#importNotes");
 const resetButton = document.querySelector("#resetBoard");
+const fileMenu = document.querySelector(".file-menu");
 const searchInput = document.querySelector("#searchInput");
 const noteCount = document.querySelector("#noteCount");
 const boardTitle = document.querySelector("#boardTitle");
@@ -40,6 +41,7 @@ const bringForwardButton = document.querySelector("#bringForward");
 const dialogDelete = document.querySelector("#dialogDelete");
 const characterButton = document.querySelector("#characterButton");
 const characterBubble = document.querySelector("#characterBubble");
+const trashZone = document.querySelector("#trashZone");
 const memoryDialog = document.querySelector("#memoryDialog");
 const memoryTitle = document.querySelector("#memoryTitle");
 const memoryImage = document.querySelector("#memoryImage");
@@ -199,6 +201,7 @@ function createNote(overrides = {}) {
     type: "plain",
     color: COLORS[notes.length % COLORS.length],
     sticker: "none",
+    checked: [],
     x: Math.max(22, Math.min(120 + notes.length * 24, logicalWidth - 250)),
     y: Math.max(22, Math.min(90 + notes.length * 24, logicalHeight - 210)),
     z: ++topZ,
@@ -208,18 +211,13 @@ function createNote(overrides = {}) {
   };
 
   notes.push(note);
+  searchInput.value = "";
   saveNotes();
   render();
 
   const element = board.querySelector(`[data-note-id="${note.id}"]`);
   element.classList.add("is-new");
-  if (isMobile()) {
-    openNote(note.id);
-  } else {
-    const title = element.querySelector(".note-title");
-    title.focus();
-    title.select();
-  }
+  openNote(note.id);
 }
 
 function render() {
@@ -302,10 +300,13 @@ function startDrag(event) {
     scale: boardScale(),
     startX: event.clientX,
     startY: event.clientY,
+    lastX: event.clientX,
+    lastY: event.clientY,
     moved: false
   };
 
   noteElement.setPointerCapture(event.pointerId);
+  board.classList.add("is-dragging-note");
   noteElement.classList.add("is-dragging");
   const z = ++topZ;
   noteElement.style.zIndex = z;
@@ -316,6 +317,8 @@ function moveDrag(event) {
   if (!dragging) return;
 
   const { element, boardRect, offsetX, offsetY, startX, startY } = dragging;
+  dragging.lastX = event.clientX;
+  dragging.lastY = event.clientY;
   dragging.moved = dragging.moved || Math.abs(event.clientX - startX) > 7 || Math.abs(event.clientY - startY) > 7;
   const maxX = boardRect.width - element.offsetWidth;
   const maxY = boardRect.height - element.offsetHeight;
@@ -324,13 +327,23 @@ function moveDrag(event) {
 
   element.style.left = `${x}px`;
   element.style.top = `${y}px`;
+  trashZone.classList.toggle("is-ready", isOverTrash(event.clientX, event.clientY));
 }
 
 function endDrag() {
   if (!dragging) return;
 
-  const { id, element, moved, scale } = dragging;
+  const { id, element, moved, scale, lastX, lastY } = dragging;
   element.classList.remove("is-dragging");
+  board.classList.remove("is-dragging-note");
+  trashZone.classList.remove("is-ready");
+
+  if (moved && isOverTrash(lastX, lastY)) {
+    dragging = null;
+    deleteNote(id);
+    return;
+  }
+
   updateNote(id, {
     x: parseFloat(element.style.left) / scale,
     y: parseFloat(element.style.top) / scale
@@ -338,6 +351,12 @@ function endDrag() {
   dragging = null;
 
   if (!moved && isMobile()) openNote(id);
+}
+
+function isOverTrash(clientX, clientY) {
+  if (!trashZone) return false;
+  const rect = trashZone.getBoundingClientRect();
+  return clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
 }
 
 function openNote(id) {
@@ -472,7 +491,8 @@ function renderChecklistPreview(container, note) {
   container.replaceChildren(...items.map((item, index) => {
     const row = document.createElement("span");
     row.className = "checklist-row";
-    const checked = note.checked.includes(index);
+    const checkedItems = Array.isArray(note.checked) ? note.checked : [];
+    const checked = checkedItems.includes(index);
     row.classList.toggle("is-checked", checked);
     row.innerHTML = `<span class="check-box">${checked ? "✓" : ""}</span><span>${escapeHTML(item)}</span>`;
     return row;
@@ -584,6 +604,9 @@ addChecklistButton.addEventListener("click", () => createNote({
 }));
 exportButton.addEventListener("click", exportNotes);
 importInput.addEventListener("change", importNotes);
+fileMenu.addEventListener("click", (event) => {
+  if (event.target === exportButton) fileMenu.open = false;
+});
 resetButton.addEventListener("click", () => {
   const confirmed = confirm("Reset all notes on this v3 board? This cannot be undone.");
   if (!confirmed) return;
