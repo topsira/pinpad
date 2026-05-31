@@ -28,10 +28,11 @@ const searchInput = document.querySelector("#searchInput");
 const stickerFilters = document.querySelector("#stickerFilters");
 const noteCount = document.querySelector("#noteCount");
 const boardTitle = document.querySelector("#boardTitle");
-const editTitle = document.querySelector("#editTitle");
 const noteDialog = document.querySelector("#noteDialog");
 const dialogTitle = document.querySelector("#dialogTitle");
 const dialogBody = document.querySelector("#dialogBody");
+const dialogRichBody = document.querySelector("#dialogRichBody");
+const formatToolbar = document.querySelector("#formatToolbar");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
 const dialogSticker = document.querySelector("#dialogSticker");
@@ -249,14 +250,16 @@ function renderNote(note) {
   element.style.setProperty("--tilt", `${tiltFor(note.id)}deg`);
   title.value = note.title;
   title.readOnly = true;
-  body.value = note.body;
-  body.readOnly = true;
-  body.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
+  body.innerHTML = note.type === "checklist" ? "" : sanitizeRichText(note.body || "");
+  body.dataset.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
   stickerBadge.textContent = STICKERS[note.sticker].text;
   stickerBadge.hidden = note.sticker === "none";
   renderChecklistPreview(checklistPreview, note);
 
   element.addEventListener("pointerdown", startDrag);
+  element.addEventListener("dblclick", (event) => {
+    if (!event.target.closest("input, textarea, button, select, label")) openNote(note.id);
+  });
   open.addEventListener("click", () => openNote(note.id));
 
   board.appendChild(fragment);
@@ -284,7 +287,7 @@ function bringForward(id) {
 
 function startDrag(event) {
   const noteElement = event.currentTarget;
-  const interactive = event.target.closest("input, textarea, button, select, label");
+  const interactive = event.target.closest("input, textarea, button, select, label, [contenteditable]");
   if (interactive) return;
 
   const id = noteElement.dataset.noteId;
@@ -307,9 +310,13 @@ function startDrag(event) {
     moved: false
   };
 
-  noteElement.setPointerCapture(event.pointerId);
   board.classList.add("is-dragging-note");
   noteElement.classList.add("is-dragging");
+  try {
+    noteElement.setPointerCapture(event.pointerId);
+  } catch {
+    // Synthetic pointer events in automated checks may not have an active pointer capture target.
+  }
   const z = ++topZ;
   noteElement.style.zIndex = z;
   updateNote(id, { z });
@@ -368,6 +375,7 @@ function openNote(id) {
   activeNoteId = id;
   dialogTitle.value = note.title;
   dialogBody.value = note.body;
+  dialogRichBody.innerHTML = sanitizeRichText(note.body || "");
   dialogColor.value = note.color;
   dialogType.value = note.type;
   dialogSticker.value = note.sticker;
@@ -397,7 +405,7 @@ function applySearch() {
     const id = element.dataset.noteId;
     const note = notes.find((item) => item.id === id);
     const sticker = STICKERS[note.sticker]?.label || "";
-    const haystack = `${note.title} ${note.body} ${sticker} ${note.type}`.toLowerCase();
+    const haystack = `${note.title} ${plainText(note.body)} ${sticker} ${note.type}`.toLowerCase();
     const matchesQuery = query.length === 0 || haystack.includes(query);
     const matchesSticker = activeStickerFilter === "all" || note.sticker === activeStickerFilter;
     element.classList.toggle("is-hidden", !matchesQuery || !matchesSticker);
@@ -546,7 +554,9 @@ function renderStickerFilters() {
 function syncDialogMode(note = activeNote()) {
   if (!note) return;
   const checklist = note.type === "checklist";
-  dialogBody.hidden = checklist;
+  formatToolbar.hidden = checklist;
+  dialogRichBody.hidden = checklist;
+  dialogBody.hidden = true;
   dialogChecklist.hidden = !checklist;
   if (checklist) renderDialogChecklist(note);
 }
@@ -575,12 +585,64 @@ function renderDialogChecklist(note = activeNote()) {
       if (!current) return;
       const nextItems = current.body.split("\n");
       nextItems[index] = input.value;
-      updateNote(current.id, { body: nextItems.join("\n") }, true);
+      const nextChecked = remapCheckedAfterEdit(current.checked, nextItems);
+      updateNote(current.id, { body: nextItems.join("\n"), checked: nextChecked }, true);
     });
 
-    row.append(checkbox, input);
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "remove-task";
+    remove.title = "Delete task";
+    remove.textContent = "×";
+    remove.addEventListener("click", (event) => {
+      event.preventDefault();
+      removeChecklistItem(note.id, index);
+    });
+
+    row.append(checkbox, input, remove);
     return row;
   }));
+}
+
+function removeChecklistItem(noteId, index) {
+  const note = notes.find((item) => item.id === noteId);
+  if (!note) return;
+  const items = note.body.split("\n");
+  items.splice(index, 1);
+  const checked = (Array.isArray(note.checked) ? note.checked : [])
+    .filter((item) => item !== index)
+    .map((item) => item > index ? item - 1 : item);
+  updateNote(noteId, { body: items.join("\n"), checked }, true);
+  renderDialogChecklist(activeNote());
+}
+
+function remapCheckedAfterEdit(checkedItems) {
+  return Array.isArray(checkedItems) ? checkedItems.filter(Number.isFinite) : [];
+}
+
+function sanitizeRichText(value) {
+  if (!value) return "";
+  if (!/[<>]/.test(value)) return escapeHTML(value).replace(/\n/g, "<br>");
+  const template = document.createElement("template");
+  template.innerHTML = value;
+  template.content.querySelectorAll("script, iframe, object, embed, link, meta, style").forEach((node) => node.remove());
+  template.content.querySelectorAll("*").forEach((node) => {
+    [...node.attributes].forEach((attribute) => {
+      const name = attribute.name.toLowerCase();
+      const val = attribute.value.toLowerCase();
+      if (name.startsWith("on") || val.includes("javascript:")) node.removeAttribute(attribute.name);
+      if (name === "style") {
+        node.setAttribute("style", node.getAttribute("style").replace(/url\\([^)]*\\)/gi, ""));
+      }
+    });
+  });
+  return template.innerHTML;
+}
+
+function plainText(value) {
+  const template = document.createElement("template");
+  template.innerHTML = value || "";
+  return template.content.textContent || value || "";
 }
 
 function escapeHTML(value) {
@@ -627,10 +689,6 @@ boardTitle.addEventListener("blur", () => {
   }
   syncTitle();
 });
-editTitle.addEventListener("click", () => {
-  boardTitle.focus();
-  boardTitle.select();
-});
 addButton.addEventListener("click", () => createNote());
 addChecklistButton.addEventListener("click", () => createNote({
   title: "Checklist",
@@ -655,6 +713,15 @@ resetButton.addEventListener("click", () => {
 searchInput.addEventListener("input", applySearch);
 dialogTitle.addEventListener("input", (event) => syncDialogNote({ title: event.target.value }));
 dialogBody.addEventListener("input", (event) => syncDialogNote({ body: event.target.value }));
+dialogRichBody.addEventListener("input", () => syncDialogNote({ body: dialogRichBody.innerHTML }));
+formatToolbar.addEventListener("click", (event) => {
+  const button = event.target.closest("button[data-command]");
+  if (!button) return;
+  event.preventDefault();
+  dialogRichBody.focus();
+  document.execCommand(button.dataset.command, false, button.dataset.value || null);
+  syncDialogNote({ body: dialogRichBody.innerHTML });
+});
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
   dialogBody.placeholder = event.target.value === "checklist" ? "One task per line" : "Write something...";
@@ -662,6 +729,8 @@ dialogType.addEventListener("change", (event) => {
   if (event.target.value === "checklist" && !dialogBody.value.trim()) {
     patch.body = "First task";
     dialogBody.value = patch.body;
+  } else if (event.target.value !== "checklist") {
+    patch.body = dialogRichBody.innerHTML || dialogBody.value;
   }
   syncDialogNote(patch);
   syncDialogMode();
