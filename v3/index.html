@@ -161,8 +161,29 @@
           <button type="button" data-command="italic" title="Italic"><em>I</em></button>
           <button type="button" data-command="justifyLeft" title="Align left">L</button>
           <button type="button" data-command="justifyCenter" title="Align center">C</button>
-          <button type="button" data-command="insertUnorderedList" title="Bullet list">List</button>
-          <button type="button" data-command="backColor" data-value="#fff2ae" title="Highlight">Mark</button>
+          <select id="listStyle" aria-label="List style">
+            <option value="">List</option>
+            <option value="insertUnorderedList">Bullet list</option>
+            <option value="insertOrderedList">Numbered list</option>
+          </select>
+          <select id="textColor" aria-label="Text color">
+            <option value="">Text color</option>
+            <option value="#2b2521">Ink</option>
+            <option value="#c83f34">Red</option>
+            <option value="#2f68b8">Blue</option>
+            <option value="#2f7b4f">Green</option>
+            <option value="#d96c2c">Orange</option>
+            <option value="#8a4bb8">Purple</option>
+          </select>
+          <select id="highlightColor" aria-label="Highlight color">
+            <option value="">Highlight</option>
+            <option value="#fff2ae">Yellow</option>
+            <option value="#ccf1dc">Mint</option>
+            <option value="#c4e6ff">Sky</option>
+            <option value="#ffd2bd">Peach</option>
+            <option value="#e4d6ff">Lilac</option>
+            <option value="transparent">Clear mark</option>
+          </select>
           <button type="button" data-command="removeFormat" title="Clear format">Clear</button>
         </div>
         <div id="dialogRichBody" class="dialog-body rich-body" contenteditable="true" role="textbox" aria-label="Note text" spellcheck="true"></div>

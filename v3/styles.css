@@ -950,11 +950,20 @@ button:hover,
   display: none;
 }
 
-.format-toolbar button {
+.format-toolbar button,
+.format-toolbar select {
   min-height: 32px;
   padding: 0 10px;
   font-size: 0.82rem;
   font-weight: 850;
+}
+
+.format-toolbar select {
+  max-width: 128px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: white;
 }
 
 .dialog-title {

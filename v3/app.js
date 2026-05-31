@@ -33,6 +33,9 @@ const dialogTitle = document.querySelector("#dialogTitle");
 const dialogBody = document.querySelector("#dialogBody");
 const dialogRichBody = document.querySelector("#dialogRichBody");
 const formatToolbar = document.querySelector("#formatToolbar");
+const textColor = document.querySelector("#textColor");
+const highlightColor = document.querySelector("#highlightColor");
+const listStyle = document.querySelector("#listStyle");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
 const dialogSticker = document.querySelector("#dialogSticker");
@@ -96,6 +99,7 @@ let dragging = null;
 let activeNoteId = null;
 let bubbleTimer = null;
 let activeStickerFilter = "all";
+let savedRichRange = null;
 
 function sampleNotes() {
   const now = new Date().toISOString();
@@ -397,6 +401,30 @@ function syncDialogNote(patch) {
 
 function activeNote() {
   return notes.find((note) => note.id === activeNoteId);
+}
+
+function saveRichSelection() {
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  if (dialogRichBody.contains(range.commonAncestorContainer)) {
+    savedRichRange = range.cloneRange();
+  }
+}
+
+function restoreRichSelection() {
+  if (!savedRichRange) return;
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(savedRichRange);
+}
+
+function applyRichCommand(command, value = null) {
+  dialogRichBody.focus();
+  restoreRichSelection();
+  document.execCommand(command, false, value);
+  saveRichSelection();
+  syncDialogNote({ body: dialogRichBody.innerHTML });
 }
 
 function applySearch() {
@@ -713,14 +741,33 @@ resetButton.addEventListener("click", () => {
 searchInput.addEventListener("input", applySearch);
 dialogTitle.addEventListener("input", (event) => syncDialogNote({ title: event.target.value }));
 dialogBody.addEventListener("input", (event) => syncDialogNote({ body: event.target.value }));
-dialogRichBody.addEventListener("input", () => syncDialogNote({ body: dialogRichBody.innerHTML }));
+dialogRichBody.addEventListener("input", () => {
+  saveRichSelection();
+  syncDialogNote({ body: dialogRichBody.innerHTML });
+});
+dialogRichBody.addEventListener("keyup", saveRichSelection);
+dialogRichBody.addEventListener("mouseup", saveRichSelection);
+dialogRichBody.addEventListener("blur", saveRichSelection);
 formatToolbar.addEventListener("click", (event) => {
   const button = event.target.closest("button[data-command]");
   if (!button) return;
   event.preventDefault();
-  dialogRichBody.focus();
-  document.execCommand(button.dataset.command, false, button.dataset.value || null);
-  syncDialogNote({ body: dialogRichBody.innerHTML });
+  applyRichCommand(button.dataset.command, button.dataset.value || null);
+});
+textColor.addEventListener("change", (event) => {
+  if (!event.target.value) return;
+  applyRichCommand("foreColor", event.target.value);
+  event.target.value = "";
+});
+highlightColor.addEventListener("change", (event) => {
+  if (!event.target.value) return;
+  applyRichCommand("backColor", event.target.value);
+  event.target.value = "";
+});
+listStyle.addEventListener("change", (event) => {
+  if (!event.target.value) return;
+  applyRichCommand(event.target.value);
+  event.target.value = "";
 });
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
