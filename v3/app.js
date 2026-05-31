@@ -25,6 +25,7 @@ const importInput = document.querySelector("#importNotes");
 const resetButton = document.querySelector("#resetBoard");
 const fileMenu = document.querySelector(".file-menu");
 const searchInput = document.querySelector("#searchInput");
+const stickerFilters = document.querySelector("#stickerFilters");
 const noteCount = document.querySelector("#noteCount");
 const boardTitle = document.querySelector("#boardTitle");
 const editTitle = document.querySelector("#editTitle");
@@ -93,6 +94,7 @@ let topZ = Math.max(1, ...notes.map((note) => note.z || 1));
 let dragging = null;
 let activeNoteId = null;
 let bubbleTimer = null;
+let activeStickerFilter = "all";
 
 function sampleNotes() {
   const now = new Date().toISOString();
@@ -282,7 +284,7 @@ function bringForward(id) {
 
 function startDrag(event) {
   const noteElement = event.currentTarget;
-  const interactive = event.target.closest("input, textarea, button, select");
+  const interactive = event.target.closest("input, textarea, button, select, label");
   if (interactive) return;
 
   const id = noteElement.dataset.noteId;
@@ -396,7 +398,9 @@ function applySearch() {
     const note = notes.find((item) => item.id === id);
     const sticker = STICKERS[note.sticker]?.label || "";
     const haystack = `${note.title} ${note.body} ${sticker} ${note.type}`.toLowerCase();
-    element.classList.toggle("is-hidden", query.length > 0 && !haystack.includes(query));
+    const matchesQuery = query.length === 0 || haystack.includes(query);
+    const matchesSticker = activeStickerFilter === "all" || note.sticker === activeStickerFilter;
+    element.classList.toggle("is-hidden", !matchesQuery || !matchesSticker);
   });
   updateCount();
 }
@@ -486,16 +490,56 @@ function renderChecklistPreview(container, note) {
     return;
   }
 
-  const items = note.body.split("\n").map((item) => item.trim()).filter(Boolean).slice(0, 5);
+  const items = note.body.split("\n").map((item, index) => ({ text: item.trim(), index })).filter((item) => item.text);
   container.hidden = false;
-  container.replaceChildren(...items.map((item, index) => {
-    const row = document.createElement("span");
+  container.replaceChildren(...items.map((item) => {
+    const row = document.createElement("label");
     row.className = "checklist-row";
     const checkedItems = Array.isArray(note.checked) ? note.checked : [];
-    const checked = checkedItems.includes(index);
+    const checked = checkedItems.includes(item.index);
     row.classList.toggle("is-checked", checked);
-    row.innerHTML = `<span class="check-box">${checked ? "✓" : ""}</span><span>${escapeHTML(item)}</span>`;
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = checked;
+    checkbox.addEventListener("change", () => toggleChecklistItem(note.id, item.index, checkbox.checked));
+    const text = document.createElement("span");
+    text.textContent = item.text;
+    row.append(checkbox, text);
     return row;
+  }));
+}
+
+function toggleChecklistItem(noteId, index, checked) {
+  const note = notes.find((item) => item.id === noteId);
+  if (!note) return;
+  const checkedItems = new Set(Array.isArray(note.checked) ? note.checked : []);
+  if (checked) {
+    checkedItems.add(index);
+  } else {
+    checkedItems.delete(index);
+  }
+  updateNote(noteId, { checked: [...checkedItems].sort((a, b) => a - b) }, true);
+  if (activeNoteId === noteId) renderDialogChecklist(activeNote());
+}
+
+function renderStickerFilters() {
+  const filters = [
+    ["all", "All"],
+    ...Object.entries(STICKERS).filter(([key]) => key !== "none").map(([key, sticker]) => [key, sticker.label])
+  ];
+  stickerFilters.replaceChildren(...filters.map(([key, label]) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "filter-chip";
+    button.dataset.filter = key;
+    button.textContent = label;
+    button.setAttribute("aria-pressed", String(activeStickerFilter === key));
+    button.addEventListener("click", () => {
+      activeStickerFilter = key;
+      renderStickerFilters();
+      applySearch();
+    });
+    return button;
   }));
 }
 
@@ -518,18 +562,9 @@ function renderDialogChecklist(note = activeNote()) {
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = note.checked.includes(index);
-    checkbox.addEventListener("change", () => {
-      const current = activeNote();
-      if (!current) return;
-      const checked = new Set(current.checked);
-      if (checkbox.checked) {
-        checked.add(index);
-      } else {
-        checked.delete(index);
-      }
-      syncDialogNote({ checked: [...checked].sort((a, b) => a - b) });
-    });
+    const checkedItems = Array.isArray(note.checked) ? note.checked : [];
+    checkbox.checked = checkedItems.includes(index);
+    checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
 
     const input = document.createElement("input");
     input.type = "text";
@@ -577,6 +612,7 @@ function boardScale() {
 }
 
 syncTitle();
+renderStickerFilters();
 render();
 
 boardTitle.addEventListener("input", (event) => {

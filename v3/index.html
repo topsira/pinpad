@@ -13,15 +13,17 @@
         <div class="brand">
           <p class="eyebrow">Personal board</p>
           <div class="title-row">
+            <img class="board-logo" src="assets/favicon.svg" alt="" aria-hidden="true">
             <input id="boardTitle" class="board-title" aria-label="Board name" maxlength="42">
             <button id="editTitle" class="icon-button" type="button" title="Edit board name">Edit</button>
           </div>
         </div>
         <div class="actions">
-          <label class="search">
+          <div class="search">
             <span>Search</span>
             <input id="searchInput" type="search" placeholder="Find notes">
-          </label>
+            <span id="stickerFilters" class="sticker-filters" aria-label="Filter by sticker"></span>
+          </div>
           <button id="addNote" class="primary action-button" type="button">
             <span class="button-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
@@ -60,6 +62,12 @@
         </div>
         <div id="board" class="board">
           <div class="desk-line" aria-hidden="true"></div>
+          <div id="trashZone" class="trash-zone" aria-label="Drop note here to delete">
+            <span class="trash-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M8 7V5h8v2M5 7h14M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14"/></svg>
+            </span>
+            <span>Drop to delete</span>
+          </div>
           <aside class="memory-rail" aria-label="Memory stickers">
             <button class="memory-card" type="button" data-memory="spySmile" title="Open Spy memory">
               <img src="../v2/assets/characters/spy-smile-card.jpg" alt="Spy smiling from a blanket">
@@ -87,12 +95,6 @@
             </button>
           </aside>
           <div id="characterCorner" class="character-corner" aria-live="polite">
-            <div id="trashZone" class="trash-zone" aria-label="Drop note here to delete">
-              <span class="trash-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24"><path d="M8 7V5h8v2M5 7h14M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14"/></svg>
-              </span>
-              <span>Drop to delete</span>
-            </div>
             <div id="characterBubble" class="character-bubble" hidden></div>
             <button id="characterButton" class="character-button" type="button" title="Say hello">
               <img class="character-duo" src="../v2/assets/characters/spy-gaga-cutout.png" alt="Spy and Gaga">
