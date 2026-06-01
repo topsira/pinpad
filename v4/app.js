@@ -43,6 +43,9 @@ const textColor = document.querySelector("#textColor");
 const highlightColor = document.querySelector("#highlightColor");
 const listStyle = document.querySelector("#listStyle");
 const fontSize = document.querySelector("#fontSize");
+const visualCheckShape = document.querySelector("#visualCheckShape");
+const visualCheckMark = document.querySelector("#visualCheckMark");
+const insertVisualCheck = document.querySelector("#insertVisualCheck");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
 const dialogTag = document.querySelector("#dialogTag");
@@ -111,11 +114,15 @@ let savedRichRange = null;
 
 function sampleNotes() {
   const now = new Date().toISOString();
+  const today = dateOffset(0);
+  const tomorrow = dateOffset(1);
+  const soon = dateOffset(3);
+  const overdue = dateOffset(-1);
   return [
     {
       id: crypto.randomUUID(),
       title: "Inbox",
-      body: "Drop quick thoughts here. Try <u>underline</u>, <s>strike</s>, quote blocks, and inline checkboxes.",
+      body: "Drop quick thoughts here. Try <u>underline</u>, <s>strike</s>, quote blocks, and <span class=\"visual-check\" data-shape=\"circle\" data-mark=\"check\" contenteditable=\"false\"></span> visual boxes.",
       type: "plain",
       color: "butter",
       tag: "idea",
@@ -147,10 +154,11 @@ function sampleNotes() {
       tag: "focus",
       checked: [0],
       tasks: [
-        { text: "Review v4 tags", done: true, due: "Today" },
-        { text: "Try due labels", done: false, due: "Tomorrow" },
-        { text: "Reorder tasks", done: false, due: "" },
-        { text: "Check progress", done: false, due: "This week" }
+        { text: "Review v4 tags", done: true, due: today },
+        { text: "Try due dates", done: false, due: today },
+        { text: "Reorder tasks", done: false, due: tomorrow },
+        { text: "Check progress", done: false, due: soon },
+        { text: "Review overdue state", done: false, due: overdue }
       ],
       x: 180,
       y: 335,
@@ -254,7 +262,7 @@ function renderNote(note) {
   const element = fragment.querySelector(".note");
   const title = fragment.querySelector(".note-title");
   const body = fragment.querySelector(".note-body");
-  const tagBadge = fragment.querySelector(".note-sticker");
+  const tagBadge = fragment.querySelector(".note-tag");
   const checklistPreview = fragment.querySelector(".checklist-preview");
   const open = fragment.querySelector(".open-note");
 
@@ -390,6 +398,7 @@ function isOverTrash(clientX, clientY) {
 function openNote(id) {
   const note = notes.find((item) => item.id === id);
   if (!note) return;
+  if (note.type === "checklist") normalizeChecklistState(note);
 
   activeNoteId = id;
   dialogTitle.value = note.title;
@@ -440,6 +449,12 @@ function applyRichCommand(command, value = null) {
   document.execCommand(command, false, value);
   saveRichSelection();
   syncDialogNote({ body: dialogRichBody.innerHTML });
+}
+
+function insertVisualCheckbox() {
+  const shape = visualCheckShape.value || "square";
+  const mark = visualCheckMark.value || "check";
+  applyRichCommand("insertHTML", `<span class="visual-check" data-shape="${shape}" data-mark="${mark}" contenteditable="false"></span>&nbsp;`);
 }
 
 function applySearch() {
@@ -548,12 +563,20 @@ function checklistTasks(note) {
   return normalizeTasks(note.tasks, note.body, note.checked);
 }
 
+function normalizeChecklistState(note) {
+  const tasks = checklistTasks(note);
+  note.tasks = tasks;
+  note.body = syncTaskBody(tasks);
+  note.checked = checkedFromTasks(tasks);
+  return note;
+}
+
 function normalizeTasks(tasks, body = "", checked = []) {
   if (Array.isArray(tasks) && tasks.length) {
     return tasks.map((task, index) => ({
       text: typeof task.text === "string" ? task.text : `Task ${index + 1}`,
       done: Boolean(task.done),
-      due: typeof task.due === "string" ? task.due : ""
+      due: normalizeDueDate(task.due)
     }));
   }
   const checkedItems = new Set(Array.isArray(checked) ? checked : []);
@@ -580,6 +603,35 @@ function checklistProgressText(note) {
   return `${done}/${tasks.length} done`;
 }
 
+function dateOffset(days) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function normalizeDueDate(value) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
+}
+
+function dueState(due, done = false) {
+  if (!due || done) return { key: "none", label: "", title: "" };
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDate = new Date(`${due}T00:00:00`);
+  const days = Math.round((dueDate - today) / 86400000);
+  if (days < 0) return { key: "overdue", label: "!", title: "Overdue" };
+  if (days === 0) return { key: "today", label: "Today", title: "Due today" };
+  if (days <= 3) return { key: "soon", label: "Soon", title: "Due soon" };
+  return { key: "upcoming", label: "Due", title: "Upcoming due date" };
+}
+
+function formatDueDate(due) {
+  if (!due) return "";
+  const date = new Date(`${due}T00:00:00`);
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
 function renderChecklistPreview(container, note) {
   if (note.type !== "checklist") {
     container.hidden = true;
@@ -603,8 +655,14 @@ function renderChecklistPreview(container, note) {
     checkbox.checked = task.done;
     checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
     const text = document.createElement("span");
-    text.textContent = task.due ? `${task.text} · ${task.due}` : task.text;
-    row.append(checkbox, text);
+    text.textContent = task.text;
+    const due = dueState(task.due, task.done);
+    const dueBadge = document.createElement("span");
+    dueBadge.className = `due-chip is-${due.key}`;
+    dueBadge.title = due.title;
+    dueBadge.hidden = due.key === "none";
+    dueBadge.textContent = due.key === "overdue" ? `! ${formatDueDate(task.due)}` : `${due.label} ${formatDueDate(task.due)}`;
+    row.append(checkbox, text, dueBadge);
     return row;
   });
   container.replaceChildren(meter, ...rows);
@@ -704,18 +762,24 @@ function renderDialogChecklist(note = activeNote()) {
     });
 
     const due = document.createElement("input");
-    due.type = "text";
+    due.type = "date";
     due.className = "task-due";
     due.value = task.due;
-    due.placeholder = "Due";
     due.setAttribute("aria-label", "Due label");
-    due.addEventListener("input", () => {
+    due.addEventListener("change", () => {
       const current = activeNote();
       if (!current) return;
       const nextTasks = checklistTasks(current);
       nextTasks[index] = { ...(nextTasks[index] || { text: "", done: false }), due: due.value };
       updateNote(current.id, { tasks: nextTasks, body: syncTaskBody(nextTasks), checked: checkedFromTasks(nextTasks) }, true);
     });
+
+    const status = dueState(task.due, task.done);
+    const dueSignal = document.createElement("span");
+    dueSignal.className = `due-signal is-${status.key}`;
+    dueSignal.title = status.title;
+    dueSignal.hidden = status.key === "none";
+    dueSignal.textContent = status.key === "overdue" ? "!" : status.label;
 
     const remove = document.createElement("button");
     remove.type = "button";
@@ -727,7 +791,7 @@ function renderDialogChecklist(note = activeNote()) {
       removeChecklistItem(note.id, index);
     });
 
-    row.append(moveUp, moveDown, checkbox, input, due, remove);
+    row.append(moveUp, moveDown, checkbox, input, due, dueSignal, remove);
     return row;
   }));
 }
@@ -829,7 +893,7 @@ addChecklistButton.addEventListener("click", () => createNote({
   type: "checklist",
   tag: "focus",
   tasks: [
-    { text: "First thing", done: false, due: "Today" },
+    { text: "First thing", done: false, due: dateOffset(0) },
     { text: "Second thing", done: false, due: "" },
     { text: "Tiny win", done: false, due: "" }
   ]
@@ -884,6 +948,7 @@ fontSize.addEventListener("change", (event) => {
   applyRichCommand("fontSize", event.target.value);
   event.target.value = "";
 });
+insertVisualCheck.addEventListener("click", insertVisualCheckbox);
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
   dialogBody.placeholder = event.target.value === "checklist" ? "One task per line" : "Write something...";

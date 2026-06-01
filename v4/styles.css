@@ -171,7 +171,7 @@ button:hover,
   text-transform: uppercase;
 }
 
-.sticker-filters {
+.tag-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -428,7 +428,7 @@ button:hover,
 
 .checklist-row {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
+  grid-template-columns: 18px minmax(0, 1fr) auto;
   align-items: start;
   gap: 7px;
   min-height: 22px;
@@ -438,6 +438,49 @@ button:hover,
   line-height: 1.25;
   cursor: pointer;
   user-select: none;
+}
+
+.due-chip,
+.due-signal {
+  display: inline-grid;
+  place-items: center;
+  min-height: 20px;
+  border: 1px solid rgba(43, 37, 33, 0.12);
+  border-radius: 999px;
+  padding: 2px 7px;
+  font-size: 0.6rem;
+  font-weight: 900;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.due-chip[hidden],
+.due-signal[hidden] {
+  display: none;
+}
+
+.due-chip.is-today,
+.due-signal.is-today {
+  color: #8a4b18;
+  background: #fff0c7;
+}
+
+.due-chip.is-soon,
+.due-signal.is-soon {
+  color: #7b5a13;
+  background: #fff8d7;
+}
+
+.due-chip.is-overdue,
+.due-signal.is-overdue {
+  color: #8f332b;
+  background: #ffe1dc;
+}
+
+.due-chip.is-upcoming,
+.due-signal.is-upcoming {
+  color: #386f69;
+  background: #e0f2ec;
 }
 
 .checklist-row input[type="checkbox"] {
@@ -465,7 +508,7 @@ button:hover,
   text-decoration: line-through;
 }
 
-.note-sticker {
+.note-tag {
   position: absolute;
   right: 12px;
   bottom: 12px;
@@ -484,7 +527,7 @@ button:hover,
   text-transform: uppercase;
 }
 
-.note-sticker::before {
+.note-tag::before {
   position: absolute;
   top: 50%;
   left: 7px;
@@ -496,27 +539,27 @@ button:hover,
   transform: translateY(-50%) rotate(8deg);
 }
 
-.note[data-tag="idea"] .note-sticker::before {
+.note[data-tag="idea"] .note-tag::before {
   background: #f2b84b;
   clip-path: polygon(50% 0, 61% 32%, 96% 35%, 68% 56%, 78% 91%, 50% 70%, 22% 91%, 32% 56%, 4% 35%, 39% 32%);
 }
 
-.note[data-tag="focus"] .note-sticker::before {
+.note[data-tag="focus"] .note-tag::before {
   background: #4e8d86;
   border-radius: 999px;
 }
 
-.note[data-tag="personal"] .note-sticker::before {
+.note[data-tag="personal"] .note-tag::before {
   background: #6f8db9;
   border-radius: 2px 2px 5px 5px;
 }
 
-.note[data-tag="work"] .note-sticker::before {
+.note[data-tag="work"] .note-tag::before {
   background: #b987c7;
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-.note[data-tag="shopping"] .note-sticker::before {
+.note[data-tag="shopping"] .note-tag::before {
   background: #f08f7a;
   border-radius: 999px 999px 999px 3px;
 }
@@ -578,7 +621,7 @@ button:hover,
   max-width: 72px;
 }
 
-.note-toolbar .sticker-note {
+.note-toolbar .tag-note {
   max-width: 72px;
 }
 
@@ -632,11 +675,63 @@ button:hover,
   padding-left: 12px;
 }
 
-.inline-check {
+.visual-check {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-right: 6px;
+  justify-content: center;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0 0.18em;
+  border: 1.8px solid currentColor;
+  border-radius: 0.22em;
+  color: #4e8d86;
+  font-size: 1em;
+  line-height: 1;
+  vertical-align: -0.12em;
+}
+
+.visual-check[data-shape="circle"] {
+  border-radius: 999px;
+}
+
+.visual-check[data-shape="diamond"] {
+  border-radius: 0.16em;
+  transform: rotate(45deg);
+}
+
+.visual-check::before {
+  display: block;
+  font-size: 0.78em;
+  font-weight: 950;
+}
+
+.visual-check[data-mark="check"]::before {
+  content: "✓";
+}
+
+.visual-check[data-mark="double"]::before {
+  content: "✓✓";
+  font-size: 0.58em;
+}
+
+.visual-check[data-mark="cross"]::before {
+  content: "×";
+}
+
+.visual-check[data-mark="dot"]::before {
+  width: 0.38em;
+  height: 0.38em;
+  border-radius: 999px;
+  background: currentColor;
+  content: "";
+}
+
+.visual-check[data-mark="empty"]::before {
+  content: "";
+}
+
+.visual-check[data-shape="diamond"]::before {
+  transform: rotate(-45deg);
 }
 
 .note.is-hidden {
@@ -960,8 +1055,7 @@ button:hover,
 }
 
 .format-toolbar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 6px;
   padding: 8px;
   border: 1px solid var(--line);
@@ -971,6 +1065,32 @@ button:hover,
 
 .format-toolbar[hidden] {
   display: none;
+}
+
+.format-section {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.format-section > span,
+.format-more summary {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.format-more {
+  display: grid;
+  gap: 6px;
+}
+
+.format-more summary {
+  width: fit-content;
+  cursor: pointer;
 }
 
 .format-toolbar button,
@@ -1086,7 +1206,7 @@ button:hover,
 
 .dialog-checklist-row {
   display: grid;
-  grid-template-columns: 28px 28px 24px minmax(0, 1fr) minmax(74px, 0.42fr) 34px;
+  grid-template-columns: 28px 28px 24px minmax(118px, 1fr) 118px 54px 34px;
   align-items: center;
   gap: 7px;
   min-height: 42px;
@@ -1140,11 +1260,20 @@ button:hover,
 }
 
 .dialog-checklist-row .task-due {
+  width: 118px;
   border-left: 1px solid var(--line);
   padding-left: 8px;
   color: #8a6250;
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.dialog-checklist-row input[type="date"] {
+  min-height: 30px;
+  border: 0;
+  color: var(--ink);
+  background: transparent;
+  outline: none;
 }
 
 .memory-dialog {
@@ -1252,7 +1381,7 @@ button:hover,
     grid-column: 1 / -1;
   }
 
-  .sticker-filters {
+  .tag-filters {
     max-width: 100%;
   }
 
@@ -1338,7 +1467,7 @@ button:hover,
     font-size: 0.52rem;
   }
 
-  .note-sticker {
+  .note-tag {
     right: 8px;
     bottom: 8px;
     min-height: 20px;
@@ -1346,7 +1475,7 @@ button:hover,
     font-size: 0.52rem;
   }
 
-  .note-sticker::before {
+  .note-tag::before {
     left: 6px;
     width: 8px;
     height: 8px;
@@ -1440,6 +1569,11 @@ button:hover,
 
   .dialog-checklist-row .remove-task {
     grid-column: 5 / 6;
-    grid-row: 1 / 3;
+    grid-row: 1 / 4;
+  }
+
+  .dialog-checklist-row .due-signal {
+    grid-column: 4 / 5;
+    width: fit-content;
   }
 }
