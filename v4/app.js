@@ -8,12 +8,13 @@ const TAGS = {
   focus: { label: "Focus", text: "focus" },
   personal: { label: "Personal", text: "personal" },
   work: { label: "Work", text: "work" },
-  shop: { label: "Shop", text: "shop" }
+  shopping: { label: "Shopping", text: "shopping" }
 };
 const LEGACY_TAG_MAP = {
   saved: "personal",
   later: "work",
-  soft: "personal"
+  soft: "personal",
+  shop: "shopping"
 };
 const DEFAULT_SETTINGS = {
   boardTitle: "pinpad : TOPSIRA",
@@ -160,10 +161,10 @@ function sampleNotes() {
     {
       id: crypto.randomUUID(),
       title: "Tiny paper",
-      body: "shop list",
+      body: "shopping list",
       type: "tiny",
       color: "peach",
-      tag: "shop",
+      tag: "shopping",
       x: 420,
       y: 285,
       z: 4,

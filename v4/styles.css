@@ -516,7 +516,7 @@ button:hover,
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-.note[data-tag="shop"] .note-sticker::before {
+.note[data-tag="shopping"] .note-sticker::before {
   background: #f08f7a;
   border-radius: 999px 999px 999px 3px;
 }
