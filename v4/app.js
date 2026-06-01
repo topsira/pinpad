@@ -678,7 +678,7 @@ function renderChecklistPreview(container, note) {
     dueBadge.className = `due-chip is-${due.key}`;
     dueBadge.title = due.title;
     dueBadge.hidden = due.key === "none";
-    dueBadge.textContent = due.key === "overdue" ? `! ${formatDueDate(task.due)}` : `${due.label} ${formatDueDate(task.due)}`;
+    dueBadge.setAttribute("aria-label", due.title ? `${due.title}: ${formatDueDate(task.due)}` : "");
     row.append(checkbox, text, dueBadge);
     return row;
   });
