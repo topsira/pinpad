@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>pinpad</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar" aria-label="Board controls">
+        <div class="brand">
+          <p class="eyebrow">Personal board</p>
+          <h1>pinpad</h1>
+        </div>
+        <div class="actions">
+          <label class="search">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Find notes">
+          </label>
+          <button id="addNote" class="primary" type="button">New note</button>
+          <button id="exportNotes" type="button">Export</button>
+          <label class="import-button">
+            Import
+            <input id="importNotes" type="file" accept="application/json">
+          </label>
+          <button id="resetBoard" class="ghost" type="button">Reset demo</button>
+        </div>
+      </header>
+
+      <section class="board-wrap" aria-label="Sticky note board">
+        <div class="board-meta">
+          <span id="noteCount">0 notes</span>
+          <span>Saved locally</span>
+        </div>
+        <div id="board" class="board"></div>
+      </section>
+    </main>
+
+    <template id="noteTemplate">
+      <article class="note" data-note-id="">
+        <div class="note-pin" aria-hidden="true"></div>
+        <div class="note-toolbar">
+          <button class="pin-note" type="button" title="Bring forward">Pin</button>
+          <select class="color-note" title="Color">
+            <option value="yellow">Yellow</option>
+            <option value="mint">Mint</option>
+            <option value="sky">Sky</option>
+            <option value="rose">Rose</option>
+            <option value="lilac">Lilac</option>
+          </select>
+          <button class="delete-note" type="button" title="Delete">Delete</button>
+        </div>
+        <input class="note-title" aria-label="Note title" maxlength="48">
+        <textarea class="note-body" aria-label="Note text" spellcheck="true"></textarea>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
+

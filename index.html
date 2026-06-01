@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>pinpad</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="stylesheet" href="styles.css">
   </head>
   <body>
@@ -11,52 +12,208 @@
       <header class="topbar" aria-label="Board controls">
         <div class="brand">
           <p class="eyebrow">Personal board</p>
-          <h1>pinpad</h1>
+          <div class="title-row">
+            <img class="board-logo" src="assets/favicon.svg" alt="" aria-hidden="true">
+            <input id="boardTitle" class="board-title" aria-label="Board name" maxlength="42">
+          </div>
         </div>
         <div class="actions">
-          <label class="search">
+          <div class="search">
             <span>Search</span>
             <input id="searchInput" type="search" placeholder="Find notes">
-          </label>
-          <button id="addNote" class="primary" type="button">New note</button>
-          <button id="exportNotes" type="button">Export</button>
-          <label class="import-button">
-            Import
-            <input id="importNotes" type="file" accept="application/json">
-          </label>
-          <button id="resetBoard" class="ghost" type="button">Reset demo</button>
+            <span id="stickerFilters" class="sticker-filters" aria-label="Filter by sticker"></span>
+          </div>
+          <button id="addNote" class="primary action-button" type="button">
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+            </span>
+            <span>New note</span>
+          </button>
+          <button id="addChecklist" class="checklist-action action-button" type="button">
+            <span class="button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 3 3 5-6"/><path d="M15 7h4M15 13h4M5 19h14"/></svg>
+            </span>
+            <span>Checklist</span>
+          </button>
+          <details class="file-menu">
+            <summary class="action-button">
+              <span class="button-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M7 7l2-3h6l2 3M6 7v12h12V7"/></svg>
+              </span>
+              <span>Files</span>
+            </summary>
+            <div class="file-menu-panel">
+              <button id="exportNotes" type="button">Export JSON</button>
+              <label class="import-button">
+                Import JSON
+                <input id="importNotes" type="file" accept="application/json">
+              </label>
+            </div>
+          </details>
+          <button id="resetBoard" class="danger" type="button">Reset notes</button>
         </div>
       </header>
 
       <section class="board-wrap" aria-label="Sticky note board">
         <div class="board-meta">
           <span id="noteCount">0 notes</span>
-          <span>Saved locally</span>
+          <span>live board</span>
         </div>
-        <div id="board" class="board"></div>
+        <div id="board" class="board">
+          <div class="desk-line" aria-hidden="true"></div>
+          <aside class="memory-rail" aria-label="Memory stickers">
+            <button class="memory-card" type="button" data-memory="spySmile" title="Open Spy memory">
+              <img src="v2/assets/characters/spy-smile-card.jpg" alt="Spy smiling from a blanket">
+              <span>peek-a-note</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="nongfah" title="Open Nongfah memory">
+              <img src="v2/assets/characters/nongfah-card.jpg" alt="Nongfah with Spy">
+              <span>soft day</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="topIploy" title="Open TOP and IPLOY memory">
+              <img src="v2/assets/characters/top-iploy-card.jpg" alt="TOP and IPLOY with a dog">
+              <span>park buddy</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="spyIploy" title="Open Spy and IPLOY memory">
+              <img src="v2/assets/characters/spy-iploy-card.jpg" alt="Spy and IPLOY walking outside">
+              <span>walk time</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="topIployPaint" title="Open TOP and IPLOY paint memory">
+              <img src="v2/assets/characters/top-iploy-2-card.jpg" alt="TOP and IPLOY during painting">
+              <span>paint day</span>
+            </button>
+            <button class="memory-card" type="button" data-memory="iployCute" title="Open IPLOY memory">
+              <img src="v2/assets/characters/iploy-socute-card.jpg" alt="IPLOY sitting with toys">
+              <span>so cute</span>
+            </button>
+          </aside>
+          <div id="characterCorner" class="character-corner" aria-live="polite">
+            <div id="trashZone" class="trash-zone" aria-label="Drop note here to delete">
+              <span class="trash-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M8 7V5h8v2M5 7h14M8 10v8M12 10v8M16 10v8M7 7l1 14h8l1-14"/></svg>
+              </span>
+              <span>Drop to delete</span>
+            </div>
+            <div id="characterBubble" class="character-bubble" hidden></div>
+            <button id="characterButton" class="character-button" type="button" title="Say hello">
+              <img class="character-duo" src="v2/assets/characters/spy-gaga-cutout.png" alt="Spy and Gaga">
+              <span class="character-label">Spy &amp; Gaga</span>
+            </button>
+          </div>
+        </div>
       </section>
     </main>
 
     <template id="noteTemplate">
       <article class="note" data-note-id="">
         <div class="note-pin" aria-hidden="true"></div>
+        <div class="note-sticker" aria-hidden="true"></div>
         <div class="note-toolbar">
-          <button class="pin-note" type="button" title="Bring forward">Pin</button>
-          <select class="color-note" title="Color">
-            <option value="yellow">Yellow</option>
-            <option value="mint">Mint</option>
-            <option value="sky">Sky</option>
-            <option value="rose">Rose</option>
-            <option value="lilac">Lilac</option>
-          </select>
-          <button class="delete-note" type="button" title="Delete">Delete</button>
+          <button class="open-note" type="button" title="Open detail">Open</button>
         </div>
         <input class="note-title" aria-label="Note title" maxlength="48">
-        <textarea class="note-body" aria-label="Note text" spellcheck="true"></textarea>
+        <div class="checklist-preview" aria-hidden="true"></div>
+        <div class="note-body" aria-label="Note text"></div>
       </article>
     </template>
+
+    <dialog id="noteDialog" class="note-dialog" aria-labelledby="dialogTitle">
+      <form method="dialog" class="dialog-panel">
+        <div class="dialog-header">
+          <p class="eyebrow">Focused note</p>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <input id="dialogTitle" class="dialog-title" aria-label="Note title" maxlength="48">
+        <div class="dialog-controls">
+          <label>
+            <span>Paper</span>
+            <select id="dialogType" aria-label="Paper type">
+              <option value="plain">Plain</option>
+              <option value="checklist">Checklist</option>
+              <option value="quote">Quote</option>
+              <option value="tiny">Tiny</option>
+            </select>
+          </label>
+          <label>
+            <span>Color</span>
+            <select id="dialogColor" aria-label="Note color">
+              <option value="butter">Butter</option>
+              <option value="mint">Mint</option>
+              <option value="sky">Sky</option>
+              <option value="peach">Peach</option>
+              <option value="lilac">Lilac</option>
+            </select>
+          </label>
+          <label>
+            <span>Sticker</span>
+            <select id="dialogSticker" aria-label="Note sticker">
+              <option value="none">No sticker</option>
+              <option value="idea">Idea</option>
+              <option value="focus">Focus</option>
+              <option value="saved">Saved</option>
+              <option value="later">Later</option>
+              <option value="soft">Soft</option>
+            </select>
+          </label>
+        </div>
+        <div id="formatToolbar" class="format-toolbar" aria-label="Text formatting">
+          <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
+          <button type="button" data-command="italic" title="Italic"><em>I</em></button>
+          <button type="button" data-command="justifyLeft" title="Align left">L</button>
+          <button type="button" data-command="justifyCenter" title="Align center">C</button>
+          <select id="listStyle" aria-label="List style">
+            <option value="">List</option>
+            <option value="insertUnorderedList">Bullet list</option>
+            <option value="insertOrderedList">Numbered list</option>
+          </select>
+          <select id="textColor" aria-label="Text color">
+            <option value="">Text color</option>
+            <option value="#2b2521">Ink</option>
+            <option value="#c83f34">Red</option>
+            <option value="#2f68b8">Blue</option>
+            <option value="#2f7b4f">Green</option>
+            <option value="#d96c2c">Orange</option>
+            <option value="#8a4bb8">Purple</option>
+          </select>
+          <select id="highlightColor" aria-label="Highlight color">
+            <option value="">Highlight</option>
+            <option value="#fff2ae">Yellow</option>
+            <option value="#ccf1dc">Mint</option>
+            <option value="#c4e6ff">Sky</option>
+            <option value="#ffd2bd">Peach</option>
+            <option value="#e4d6ff">Lilac</option>
+            <option value="transparent">Clear mark</option>
+          </select>
+          <button type="button" data-command="removeFormat" title="Clear format">Clear</button>
+        </div>
+        <div id="dialogRichBody" class="dialog-body rich-body" contenteditable="true" role="textbox" aria-label="Note text" spellcheck="true"></div>
+        <textarea id="dialogBody" class="dialog-body" aria-label="Note text" hidden></textarea>
+        <div id="dialogChecklist" class="dialog-checklist" hidden>
+          <div id="dialogChecklistItems" class="dialog-checklist-items"></div>
+          <button id="addChecklistItem" class="ghost" type="button">Add task</button>
+        </div>
+        <div class="dialog-actions">
+          <button id="bringForward" type="button">Bring forward</button>
+          <button id="dialogDelete" class="danger" value="delete" type="button">Delete</button>
+          <button class="primary" value="close" type="submit">Done</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="memoryDialog" class="memory-dialog" aria-labelledby="memoryTitle">
+      <form method="dialog" class="memory-panel">
+        <div class="dialog-header">
+          <div>
+            <p class="eyebrow">Memory sticker</p>
+            <h2 id="memoryTitle" class="memory-title">Spy &amp; Gaga</h2>
+          </div>
+          <button class="icon-button" value="close" type="submit" title="Close">Close</button>
+        </div>
+        <img id="memoryImage" class="memory-image" src="v2/assets/characters/spy-smile-card.jpg" alt="">
+        <p id="memoryCaption" class="memory-caption"></p>
+      </form>
+    </dialog>
 
     <script src="app.js"></script>
   </body>
 </html>
-
