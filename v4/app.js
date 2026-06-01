@@ -43,8 +43,6 @@ const textColor = document.querySelector("#textColor");
 const highlightColor = document.querySelector("#highlightColor");
 const listStyle = document.querySelector("#listStyle");
 const fontSize = document.querySelector("#fontSize");
-const visualCheckShape = document.querySelector("#visualCheckShape");
-const visualCheckMark = document.querySelector("#visualCheckMark");
 const insertVisualCheck = document.querySelector("#insertVisualCheck");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
@@ -122,7 +120,7 @@ function sampleNotes() {
     {
       id: crypto.randomUUID(),
       title: "Inbox",
-      body: "Drop quick thoughts here. Try <u>underline</u>, <s>strike</s>, quote blocks, and <span class=\"visual-check\" data-shape=\"circle\" data-mark=\"check\" contenteditable=\"false\"></span> visual boxes.",
+      body: "Drop quick thoughts here. Try <u>underline</u>, <s>strike</s>, quote blocks, and <span class=\"visual-check\" data-checked=\"true\" contenteditable=\"false\"></span> visual boxes.",
       type: "plain",
       color: "butter",
       tag: "idea",
@@ -452,9 +450,27 @@ function applyRichCommand(command, value = null) {
 }
 
 function insertVisualCheckbox() {
-  const shape = visualCheckShape.value || "square";
-  const mark = visualCheckMark.value || "check";
-  applyRichCommand("insertHTML", `<span class="visual-check" data-shape="${shape}" data-mark="${mark}" contenteditable="false"></span>&nbsp;`);
+  applyRichCommand("insertHTML", `<span class="visual-check" data-checked="false" contenteditable="false"></span>&nbsp;`);
+}
+
+function toggleVisualCheckbox(element) {
+  const checked = element.dataset.checked === "true";
+  element.dataset.checked = checked ? "false" : "true";
+}
+
+function handleVisualCheckboxClick(event) {
+  const visualCheck = event.target.closest(".visual-check");
+  if (!visualCheck) return;
+  event.preventDefault();
+  event.stopPropagation();
+  toggleVisualCheckbox(visualCheck);
+  if (dialogRichBody.contains(visualCheck)) {
+    syncDialogNote({ body: dialogRichBody.innerHTML });
+    return;
+  }
+  const noteElement = event.target.closest(".note");
+  const noteBody = event.target.closest(".note-body");
+  if (noteElement && noteBody) updateNote(noteElement.dataset.noteId, { body: noteBody.innerHTML });
 }
 
 function applySearch() {
@@ -646,7 +662,7 @@ function renderChecklistPreview(container, note) {
   meter.innerHTML = `<span></span><strong>${checklistProgressText(note)}</strong>`;
   meter.querySelector("span").style.width = `${progressPercent(tasks)}%`;
 
-  const rows = tasks.slice(0, 5).map((task, index) => {
+  const rows = tasks.slice(0, 3).map((task, index) => {
     const row = document.createElement("label");
     row.className = "checklist-row";
     row.classList.toggle("is-checked", task.done);
@@ -655,6 +671,7 @@ function renderChecklistPreview(container, note) {
     checkbox.checked = task.done;
     checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
     const text = document.createElement("span");
+    text.className = "checklist-text";
     text.textContent = task.text;
     const due = dueState(task.due, task.done);
     const dueBadge = document.createElement("span");
@@ -665,6 +682,12 @@ function renderChecklistPreview(container, note) {
     row.append(checkbox, text, dueBadge);
     return row;
   });
+  if (tasks.length > 3) {
+    const more = document.createElement("div");
+    more.className = "checklist-more";
+    more.textContent = `+${tasks.length - 3} more`;
+    rows.push(more);
+  }
   container.replaceChildren(meter, ...rows);
 }
 
@@ -919,6 +942,7 @@ dialogRichBody.addEventListener("input", () => {
   saveRichSelection();
   syncDialogNote({ body: dialogRichBody.innerHTML });
 });
+dialogRichBody.addEventListener("click", handleVisualCheckboxClick);
 dialogRichBody.addEventListener("keyup", saveRichSelection);
 dialogRichBody.addEventListener("mouseup", saveRichSelection);
 dialogRichBody.addEventListener("blur", saveRichSelection);
@@ -949,6 +973,7 @@ fontSize.addEventListener("change", (event) => {
   event.target.value = "";
 });
 insertVisualCheck.addEventListener("click", insertVisualCheckbox);
+board.addEventListener("click", handleVisualCheckboxClick);
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
   dialogBody.placeholder = event.target.value === "checklist" ? "One task per line" : "Write something...";

@@ -427,12 +427,11 @@ button:hover,
 }
 
 .checklist-row {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 7px;
-  min-height: 22px;
+  position: relative;
+  display: block;
+  min-height: 0;
   margin: 0;
+  padding-left: 24px;
   color: var(--ink);
   font-size: 0.86rem;
   line-height: 1.25;
@@ -440,15 +439,29 @@ button:hover,
   user-select: none;
 }
 
+.checklist-text {
+  display: block;
+  min-width: 0;
+  max-height: 2.5em;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.checklist-row .due-chip {
+  display: inline-grid;
+  margin-top: 3px;
+}
+
 .due-chip,
 .due-signal {
   display: inline-grid;
   place-items: center;
-  min-height: 20px;
+  min-height: 18px;
   border: 1px solid rgba(43, 37, 33, 0.12);
   border-radius: 999px;
-  padding: 2px 7px;
-  font-size: 0.6rem;
+  padding: 2px 6px;
+  font-size: 0.58rem;
   font-weight: 900;
   line-height: 1;
   white-space: nowrap;
@@ -485,11 +498,14 @@ button:hover,
 
 .checklist-row input[type="checkbox"] {
   appearance: none;
-  display: inline-grid;
+  position: absolute;
+  top: 1px;
+  left: 0;
+  display: grid;
   place-items: center;
   width: 15px;
   height: 15px;
-  margin: 1px 0 0;
+  margin: 0;
   border: 1.5px solid rgba(43, 37, 33, 0.46);
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.36);
@@ -503,9 +519,20 @@ button:hover,
   font-weight: 900;
 }
 
-.checklist-row.is-checked span:last-child {
+.checklist-row.is-checked .checklist-text {
   color: rgba(43, 37, 33, 0.56);
   text-decoration: line-through;
+}
+
+.checklist-more {
+  width: fit-content;
+  border: 1px solid rgba(43, 37, 33, 0.1);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--muted);
+  background: rgba(255, 250, 240, 0.58);
+  font-size: 0.62rem;
+  font-weight: 900;
 }
 
 .note-tag {
@@ -690,48 +717,15 @@ button:hover,
   vertical-align: -0.12em;
 }
 
-.visual-check[data-shape="circle"] {
-  border-radius: 999px;
-}
-
-.visual-check[data-shape="diamond"] {
-  border-radius: 0.16em;
-  transform: rotate(45deg);
-}
-
 .visual-check::before {
   display: block;
   font-size: 0.78em;
   font-weight: 950;
+  content: "";
 }
 
-.visual-check[data-mark="check"]::before {
+.visual-check[data-checked="true"]::before {
   content: "✓";
-}
-
-.visual-check[data-mark="double"]::before {
-  content: "✓✓";
-  font-size: 0.58em;
-}
-
-.visual-check[data-mark="cross"]::before {
-  content: "×";
-}
-
-.visual-check[data-mark="dot"]::before {
-  width: 0.38em;
-  height: 0.38em;
-  border-radius: 999px;
-  background: currentColor;
-  content: "";
-}
-
-.visual-check[data-mark="empty"]::before {
-  content: "";
-}
-
-.visual-check[data-shape="diamond"]::before {
-  transform: rotate(-45deg);
 }
 
 .note.is-hidden {
