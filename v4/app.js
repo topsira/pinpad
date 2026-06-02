@@ -109,6 +109,7 @@ let activeNoteId = null;
 let bubbleTimer = null;
 let activeTagFilter = "all";
 let savedRichRange = null;
+let draggingTaskIndex = null;
 
 function sampleNotes() {
   const now = new Date().toISOString();
@@ -662,7 +663,7 @@ function renderChecklistPreview(container, note) {
   meter.innerHTML = `<span></span><strong>${checklistProgressText(note)}</strong>`;
   meter.querySelector("span").style.width = `${progressPercent(tasks)}%`;
 
-  const rows = tasks.slice(0, 3).map((task, index) => {
+  const rows = tasks.map((task, index) => {
     const row = document.createElement("label");
     row.className = "checklist-row";
     row.classList.toggle("is-checked", task.done);
@@ -678,16 +679,11 @@ function renderChecklistPreview(container, note) {
     dueBadge.className = `due-chip is-${due.key}`;
     dueBadge.title = due.title;
     dueBadge.hidden = due.key === "none";
+    dueBadge.textContent = due.key === "overdue" ? `! ${formatDueDate(task.due)}` : `${due.label} ${formatDueDate(task.due)}`;
     dueBadge.setAttribute("aria-label", due.title ? `${due.title}: ${formatDueDate(task.due)}` : "");
     row.append(checkbox, text, dueBadge);
     return row;
   });
-  if (tasks.length > 3) {
-    const more = document.createElement("div");
-    more.className = "checklist-more";
-    more.textContent = `+${tasks.length - 3} more`;
-    rows.push(more);
-  }
   container.replaceChildren(meter, ...rows);
 }
 
@@ -744,6 +740,41 @@ function renderDialogChecklist(note = activeNote()) {
   dialogChecklistItems.replaceChildren(...visibleTasks.map((task, index) => {
     const row = document.createElement("label");
     row.className = "dialog-checklist-row";
+    row.dataset.taskIndex = String(index);
+    row.draggable = tasks.length > 1;
+    row.addEventListener("dragstart", (event) => {
+      draggingTaskIndex = index;
+      row.classList.add("is-dragging-task");
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", String(index));
+    });
+    row.addEventListener("dragover", (event) => {
+      if (draggingTaskIndex === null || draggingTaskIndex === index) return;
+      event.preventDefault();
+      row.classList.add("is-drop-target");
+      event.dataTransfer.dropEffect = "move";
+    });
+    row.addEventListener("dragleave", () => {
+      row.classList.remove("is-drop-target");
+    });
+    row.addEventListener("drop", (event) => {
+      event.preventDefault();
+      row.classList.remove("is-drop-target");
+      const fromIndex = Number(event.dataTransfer.getData("text/plain"));
+      const sourceIndex = Number.isFinite(fromIndex) ? fromIndex : draggingTaskIndex;
+      reorderChecklistItem(note.id, sourceIndex, index);
+      draggingTaskIndex = null;
+    });
+    row.addEventListener("dragend", () => {
+      draggingTaskIndex = null;
+      row.classList.remove("is-dragging-task", "is-drop-target");
+    });
+
+    const dragHandle = document.createElement("span");
+    dragHandle.className = "drag-task";
+    dragHandle.title = "Drag to reorder";
+    dragHandle.textContent = "⋮⋮";
+    dragHandle.setAttribute("aria-hidden", "true");
 
     const moveUp = document.createElement("button");
     moveUp.type = "button";
@@ -814,7 +845,7 @@ function renderDialogChecklist(note = activeNote()) {
       removeChecklistItem(note.id, index);
     });
 
-    row.append(moveUp, moveDown, checkbox, input, due, dueSignal, remove);
+    row.append(dragHandle, moveUp, moveDown, checkbox, input, due, dueSignal, remove);
     return row;
   }));
 }
@@ -836,6 +867,17 @@ function moveChecklistItem(noteId, index, direction) {
   if (nextIndex < 0 || nextIndex >= tasks.length) return;
   const [task] = tasks.splice(index, 1);
   tasks.splice(nextIndex, 0, task);
+  updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
+  renderDialogChecklist(activeNote());
+}
+
+function reorderChecklistItem(noteId, fromIndex, toIndex) {
+  const note = notes.find((item) => item.id === noteId);
+  if (!note || fromIndex === null || toIndex === null) return;
+  const tasks = checklistTasks(note);
+  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= tasks.length || toIndex >= tasks.length) return;
+  const [task] = tasks.splice(fromIndex, 1);
+  tasks.splice(toIndex, 0, task);
   updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
   renderDialogChecklist(activeNote());
 }
