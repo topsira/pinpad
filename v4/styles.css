@@ -491,6 +491,10 @@ button:hover,
   white-space: nowrap;
 }
 
+.dialog-checklist-row .due-signal {
+  grid-area: signal;
+}
+
 .due-chip {
   color: rgba(43, 37, 33, 0.72);
 }
@@ -1218,7 +1222,8 @@ button:hover,
   display: grid;
   gap: 8px;
   max-height: min(42vh, 380px);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
   padding-right: 2px;
@@ -1226,8 +1231,11 @@ button:hover,
 
 .dialog-checklist-row {
   display: grid;
-  grid-template-columns: 24px 28px 28px 24px minmax(118px, 1fr) 118px 54px 34px;
-  align-items: center;
+  grid-template-columns: 24px 28px 28px 24px minmax(0, 1fr) 112px 54px 34px;
+  grid-template-areas:
+    "drag up down check text text text remove"
+    ". . . . due due signal remove";
+  align-items: start;
   gap: 7px;
   min-height: 42px;
   border: 1px solid var(--line);
@@ -1246,6 +1254,7 @@ button:hover,
 }
 
 .drag-task {
+  grid-area: drag;
   display: inline-grid;
   place-items: center;
   min-height: 28px;
@@ -1263,6 +1272,15 @@ button:hover,
   cursor: grabbing;
 }
 
+.dialog-checklist-row > .drag-task,
+.dialog-checklist-row > .move-task,
+.dialog-checklist-row > input[type="checkbox"],
+.dialog-checklist-row > .task-due,
+.dialog-checklist-row > .due-signal,
+.dialog-checklist-row > .remove-task {
+  align-self: start;
+}
+
 .move-task {
   display: inline-grid;
   place-items: center;
@@ -1278,7 +1296,16 @@ button:hover,
   opacity: 0.32;
 }
 
+.move-task.is-up {
+  grid-area: up;
+}
+
+.move-task.is-down {
+  grid-area: down;
+}
+
 .remove-task {
+  grid-area: remove;
   display: inline-grid;
   place-items: center;
   min-height: 30px;
@@ -1293,21 +1320,29 @@ button:hover,
 }
 
 .dialog-checklist-row input[type="checkbox"] {
+  grid-area: check;
   width: 18px;
   height: 18px;
   accent-color: var(--accent);
 }
 
-.dialog-checklist-row input[type="text"] {
+.dialog-checklist-row .task-text {
+  grid-area: text;
   min-height: 30px;
   border: 0;
+  padding: 5px 0 3px;
   color: var(--ink);
   background: transparent;
   outline: none;
+  font: inherit;
+  line-height: 1.35;
+  overflow: hidden;
+  resize: none;
 }
 
 .dialog-checklist-row .task-due {
-  width: 118px;
+  grid-area: due;
+  width: 112px;
   border-left: 1px solid var(--line);
   padding-left: 8px;
   color: #8a6250;
@@ -1610,10 +1645,13 @@ button:hover,
 
   .dialog-checklist-row {
     grid-template-columns: 24px 28px 28px 24px minmax(0, 1fr) 34px;
+    grid-template-areas:
+      "drag up down check text remove"
+      ". . . . due remove"
+      ". . . . signal remove";
   }
 
   .dialog-checklist-row .task-due {
-    grid-column: 5 / 6;
     width: 100%;
     border-left: 0;
     border-top: 1px solid var(--line);
@@ -1622,12 +1660,10 @@ button:hover,
   }
 
   .dialog-checklist-row .remove-task {
-    grid-column: 6 / 7;
     grid-row: 1 / 4;
   }
 
   .dialog-checklist-row .due-signal {
-    grid-column: 5 / 6;
     width: fit-content;
   }
 }

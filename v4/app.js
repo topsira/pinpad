@@ -779,6 +779,7 @@ function renderDialogChecklist(note = activeNote()) {
     const moveUp = document.createElement("button");
     moveUp.type = "button";
     moveUp.className = "move-task";
+    moveUp.classList.add("is-up");
     moveUp.title = "Move task up";
     moveUp.textContent = "↑";
     moveUp.disabled = index === 0;
@@ -790,6 +791,7 @@ function renderDialogChecklist(note = activeNote()) {
     const moveDown = document.createElement("button");
     moveDown.type = "button";
     moveDown.className = "move-task";
+    moveDown.classList.add("is-down");
     moveDown.title = "Move task down";
     moveDown.textContent = "↓";
     moveDown.disabled = index === visibleTasks.length - 1;
@@ -803,17 +805,25 @@ function renderDialogChecklist(note = activeNote()) {
     checkbox.checked = task.done;
     checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
 
-    const input = document.createElement("input");
-    input.type = "text";
+    const input = document.createElement("textarea");
+    input.className = "task-text";
+    input.rows = 1;
     input.value = task.text;
     input.placeholder = "Task";
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") event.preventDefault();
+    });
     input.addEventListener("input", () => {
       const current = activeNote();
       if (!current) return;
       const nextTasks = checklistTasks(current);
-      nextTasks[index] = { ...(nextTasks[index] || { done: false, due: "" }), text: input.value };
+      const text = input.value.replace(/\s*\n+\s*/g, " ");
+      if (text !== input.value) input.value = text;
+      resizeTaskText(input);
+      nextTasks[index] = { ...(nextTasks[index] || { done: false, due: "" }), text };
       updateNote(current.id, { tasks: nextTasks, body: syncTaskBody(nextTasks), checked: checkedFromTasks(nextTasks) }, true);
     });
+    requestAnimationFrame(() => resizeTaskText(input));
 
     const due = document.createElement("input");
     due.type = "date";
@@ -848,6 +858,11 @@ function renderDialogChecklist(note = activeNote()) {
     row.append(dragHandle, moveUp, moveDown, checkbox, input, due, dueSignal, remove);
     return row;
   }));
+}
+
+function resizeTaskText(input) {
+  input.style.height = "auto";
+  input.style.height = `${Math.max(30, input.scrollHeight)}px`;
 }
 
 function removeChecklistItem(noteId, index) {
