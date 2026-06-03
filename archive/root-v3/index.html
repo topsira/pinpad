@@ -21,7 +21,7 @@
           <div class="search">
             <span>Search</span>
             <input id="searchInput" type="search" placeholder="Find notes">
-            <span id="tagFilters" class="tag-filters" aria-label="Filter by tag"></span>
+            <span id="stickerFilters" class="sticker-filters" aria-label="Filter by sticker"></span>
           </div>
           <button id="addNote" class="primary action-button" type="button">
             <span class="button-icon" aria-hidden="true">
@@ -107,7 +107,7 @@
     <template id="noteTemplate">
       <article class="note" data-note-id="">
         <div class="note-pin" aria-hidden="true"></div>
-        <div class="note-tag" aria-hidden="true"></div>
+        <div class="note-sticker" aria-hidden="true"></div>
         <div class="note-toolbar">
           <button class="open-note" type="button" title="Open detail">Open</button>
         </div>
@@ -145,69 +145,50 @@
             </select>
           </label>
           <label>
-            <span>Tag</span>
-            <select id="dialogTag" aria-label="Note tag">
-              <option value="none">No tag</option>
+            <span>Sticker</span>
+            <select id="dialogSticker" aria-label="Note sticker">
+              <option value="none">No sticker</option>
               <option value="idea">Idea</option>
               <option value="focus">Focus</option>
-              <option value="personal">Personal</option>
-              <option value="work">Work</option>
-              <option value="shopping">Shopping</option>
+              <option value="saved">Saved</option>
+              <option value="later">Later</option>
+              <option value="soft">Soft</option>
             </select>
           </label>
         </div>
         <div id="formatToolbar" class="format-toolbar" aria-label="Text formatting">
-          <div class="format-section">
-            <span>Basic</span>
-            <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
-            <button type="button" data-command="italic" title="Italic"><em>I</em></button>
-            <button type="button" data-command="underline" title="Underline"><u>U</u></button>
-            <button type="button" data-command="strikeThrough" title="Strikethrough"><s>S</s></button>
-            <select id="textColor" aria-label="Text color">
-              <option value="">Text color</option>
-              <option value="#2b2521">Ink</option>
-              <option value="#c83f34">Red</option>
-              <option value="#2f68b8">Blue</option>
-              <option value="#2f7b4f">Green</option>
-              <option value="#d96c2c">Orange</option>
-              <option value="#8a4bb8">Purple</option>
-            </select>
-            <select id="highlightColor" aria-label="Highlight color">
-              <option value="">Highlight</option>
-              <option value="#fff2ae">Yellow</option>
-              <option value="#ccf1dc">Mint</option>
-              <option value="#c4e6ff">Sky</option>
-              <option value="#ffd2bd">Peach</option>
-              <option value="#e4d6ff">Lilac</option>
-              <option value="transparent">Clear mark</option>
-            </select>
-          </div>
-          <details class="format-more">
-            <summary>More</summary>
-            <div class="format-section">
-              <button type="button" data-command="justifyLeft" title="Align left">L</button>
-              <button type="button" data-command="justifyCenter" title="Align center">C</button>
-              <button type="button" data-command="formatBlock" data-value="blockquote" title="Quote block">Quote</button>
-              <select id="fontSize" aria-label="Font size">
-                <option value="">Size</option>
-                <option value="2">Small</option>
-                <option value="3">Normal</option>
-                <option value="5">Large</option>
-              </select>
-              <select id="listStyle" aria-label="List style">
-                <option value="">List</option>
-                <option value="insertUnorderedList">Bullet list</option>
-                <option value="insertOrderedList">Numbered list</option>
-              </select>
-              <button id="insertVisualCheck" type="button" title="Insert visual checkbox">Box</button>
-              <button type="button" data-command="removeFormat" title="Clear format">Clear</button>
-            </div>
-          </details>
+          <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
+          <button type="button" data-command="italic" title="Italic"><em>I</em></button>
+          <button type="button" data-command="justifyLeft" title="Align left">L</button>
+          <button type="button" data-command="justifyCenter" title="Align center">C</button>
+          <select id="listStyle" aria-label="List style">
+            <option value="">List</option>
+            <option value="insertUnorderedList">Bullet list</option>
+            <option value="insertOrderedList">Numbered list</option>
+          </select>
+          <select id="textColor" aria-label="Text color">
+            <option value="">Text color</option>
+            <option value="#2b2521">Ink</option>
+            <option value="#c83f34">Red</option>
+            <option value="#2f68b8">Blue</option>
+            <option value="#2f7b4f">Green</option>
+            <option value="#d96c2c">Orange</option>
+            <option value="#8a4bb8">Purple</option>
+          </select>
+          <select id="highlightColor" aria-label="Highlight color">
+            <option value="">Highlight</option>
+            <option value="#fff2ae">Yellow</option>
+            <option value="#ccf1dc">Mint</option>
+            <option value="#c4e6ff">Sky</option>
+            <option value="#ffd2bd">Peach</option>
+            <option value="#e4d6ff">Lilac</option>
+            <option value="transparent">Clear mark</option>
+          </select>
+          <button type="button" data-command="removeFormat" title="Clear format">Clear</button>
         </div>
         <div id="dialogRichBody" class="dialog-body rich-body" contenteditable="true" role="textbox" aria-label="Note text" spellcheck="true"></div>
         <textarea id="dialogBody" class="dialog-body" aria-label="Note text" hidden></textarea>
         <div id="dialogChecklist" class="dialog-checklist" hidden>
-          <div id="checklistProgress" class="checklist-progress" aria-live="polite"></div>
           <div id="dialogChecklistItems" class="dialog-checklist-items"></div>
           <button id="addChecklistItem" class="ghost" type="button">Add task</button>
         </div>

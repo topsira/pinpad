@@ -171,7 +171,7 @@ button:hover,
   text-transform: uppercase;
 }
 
-.tag-filters {
+.sticker-filters {
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
@@ -417,40 +417,21 @@ button:hover,
 
 .checklist-preview {
   display: none;
-  grid-auto-rows: max-content;
-  align-content: start;
-  gap: 7px;
+  gap: 5px;
   min-height: 0;
-  max-height: 100%;
   margin-top: 4px;
-  padding: 0 5px 28px 0;
-  overflow-y: auto;
+  padding-bottom: 28px;
+  overflow: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(43, 37, 33, 0.28) transparent;
-}
-
-.checklist-preview::-webkit-scrollbar {
-  width: 7px;
-}
-
-.checklist-preview::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(43, 37, 33, 0.28);
 }
 
 .checklist-row {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  grid-template-areas:
-    "box text"
-    ". due";
+  grid-template-columns: 18px minmax(0, 1fr);
   align-items: start;
-  column-gap: 7px;
-  row-gap: 3px;
-  min-height: 18px;
+  gap: 7px;
+  min-height: 22px;
   margin: 0;
   color: var(--ink);
   font-size: 0.86rem;
@@ -459,83 +440,13 @@ button:hover,
   user-select: none;
 }
 
-.checklist-text {
-  display: block;
-  grid-area: text;
-  min-width: 0;
-  overflow-wrap: anywhere;
-  white-space: normal;
-}
-
-.checklist-row .due-chip {
-  grid-area: due;
-  width: fit-content;
-  min-width: 0;
-  max-width: 100%;
-  min-height: 18px;
-  padding: 2px 7px;
-  border-radius: 999px;
-}
-
-.due-chip,
-.due-signal {
+.checklist-row input[type="checkbox"] {
+  appearance: none;
   display: inline-grid;
   place-items: center;
-  min-height: 18px;
-  border: 1px solid rgba(43, 37, 33, 0.12);
-  border-radius: 999px;
-  padding: 2px 6px;
-  font-size: 0.58rem;
-  font-weight: 900;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.dialog-checklist-row .due-signal {
-  grid-area: signal;
-}
-
-.due-chip {
-  color: rgba(43, 37, 33, 0.72);
-}
-
-.due-chip[hidden],
-.due-signal[hidden] {
-  display: none;
-}
-
-.due-chip.is-today,
-.due-signal.is-today {
-  color: #8a4b18;
-  background: #fff0c7;
-}
-
-.due-chip.is-soon,
-.due-signal.is-soon {
-  color: #7b5a13;
-  background: #fff8d7;
-}
-
-.due-chip.is-overdue,
-.due-signal.is-overdue {
-  color: #8f332b;
-  background: #ffe1dc;
-}
-
-.due-chip.is-upcoming,
-.due-signal.is-upcoming {
-  color: #386f69;
-  background: #e0f2ec;
-}
-
-.checklist-row input[type="checkbox"] {
-  grid-area: box;
-  appearance: none;
-  display: grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  margin: 0;
+  width: 15px;
+  height: 15px;
+  margin: 1px 0 0;
   border: 1.5px solid rgba(43, 37, 33, 0.46);
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.36);
@@ -549,23 +460,12 @@ button:hover,
   font-weight: 900;
 }
 
-.checklist-row.is-checked .checklist-text {
+.checklist-row.is-checked span:last-child {
   color: rgba(43, 37, 33, 0.56);
   text-decoration: line-through;
 }
 
-.checklist-more {
-  width: fit-content;
-  border: 1px solid rgba(43, 37, 33, 0.1);
-  border-radius: 999px;
-  padding: 3px 8px;
-  color: var(--muted);
-  background: rgba(255, 250, 240, 0.58);
-  font-size: 0.62rem;
-  font-weight: 900;
-}
-
-.note-tag {
+.note-sticker {
   position: absolute;
   right: 12px;
   bottom: 12px;
@@ -584,7 +484,7 @@ button:hover,
   text-transform: uppercase;
 }
 
-.note-tag::before {
+.note-sticker::before {
   position: absolute;
   top: 50%;
   left: 7px;
@@ -596,27 +496,27 @@ button:hover,
   transform: translateY(-50%) rotate(8deg);
 }
 
-.note[data-tag="idea"] .note-tag::before {
+.note[data-sticker="idea"] .note-sticker::before {
   background: #f2b84b;
   clip-path: polygon(50% 0, 61% 32%, 96% 35%, 68% 56%, 78% 91%, 50% 70%, 22% 91%, 32% 56%, 4% 35%, 39% 32%);
 }
 
-.note[data-tag="focus"] .note-tag::before {
+.note[data-sticker="focus"] .note-sticker::before {
   background: #4e8d86;
   border-radius: 999px;
 }
 
-.note[data-tag="personal"] .note-tag::before {
+.note[data-sticker="saved"] .note-sticker::before {
   background: #6f8db9;
   border-radius: 2px 2px 5px 5px;
 }
 
-.note[data-tag="work"] .note-tag::before {
+.note[data-sticker="later"] .note-sticker::before {
   background: #b987c7;
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 
-.note[data-tag="shopping"] .note-tag::before {
+.note[data-sticker="soft"] .note-sticker::before {
   background: #f08f7a;
   border-radius: 999px 999px 999px 3px;
 }
@@ -678,7 +578,7 @@ button:hover,
   max-width: 72px;
 }
 
-.note-toolbar .tag-note {
+.note-toolbar .sticker-note {
   max-width: 72px;
 }
 
@@ -714,48 +614,6 @@ button:hover,
   resize: none;
   touch-action: pan-y;
   line-height: 1.45;
-}
-
-.note-body blockquote,
-.rich-body blockquote {
-  margin: 8px 0;
-  border-left: 4px solid rgba(79, 154, 145, 0.55);
-  padding: 6px 10px;
-  background: rgba(255, 255, 255, 0.38);
-}
-
-.note-body ul,
-.note-body ol,
-.rich-body ul,
-.rich-body ol {
-  margin: 6px 0 6px 18px;
-  padding-left: 12px;
-}
-
-.visual-check {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.05em;
-  height: 1.05em;
-  margin: 0 0.18em;
-  border: 1.8px solid currentColor;
-  border-radius: 0.22em;
-  color: #4e8d86;
-  font-size: 1em;
-  line-height: 1;
-  vertical-align: -0.12em;
-}
-
-.visual-check::before {
-  display: block;
-  font-size: 0.78em;
-  font-weight: 950;
-  content: "";
-}
-
-.visual-check[data-checked="true"]::before {
-  content: "✓";
 }
 
 .note.is-hidden {
@@ -1079,7 +937,8 @@ button:hover,
 }
 
 .format-toolbar {
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 8px;
   border: 1px solid var(--line);
@@ -1091,36 +950,10 @@ button:hover,
   display: none;
 }
 
-.format-section {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.format-section > span,
-.format-more summary {
-  color: var(--muted);
-  font-size: 0.68rem;
-  font-weight: 900;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.format-more {
-  display: grid;
-  gap: 6px;
-}
-
-.format-more summary {
-  width: fit-content;
-  cursor: pointer;
-}
-
 .format-toolbar button,
 .format-toolbar select {
   min-height: 32px;
-  padding: 0 9px;
+  padding: 0 10px;
   font-size: 0.82rem;
   font-weight: 850;
 }
@@ -1165,54 +998,6 @@ button:hover,
   gap: 10px;
 }
 
-.checklist-progress {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 900;
-}
-
-.progress-track,
-.note-progress {
-  position: relative;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(43, 37, 33, 0.1);
-}
-
-.progress-track {
-  flex: 1;
-  height: 9px;
-}
-
-.progress-track span,
-.note-progress span {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, #4f9a91, #86c7a1);
-}
-
-.note-progress {
-  display: grid;
-  align-items: center;
-  width: 100%;
-  height: 16px;
-  margin: 2px 0 7px;
-}
-
-.note-progress strong {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: rgba(43, 37, 33, 0.72);
-  font-size: 0.58rem;
-  font-weight: 900;
-}
-
 .dialog-checklist[hidden],
 .dialog-body[hidden] {
   display: none;
@@ -1222,8 +1007,7 @@ button:hover,
   display: grid;
   gap: 8px;
   max-height: min(42vh, 380px);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: auto;
   overscroll-behavior: contain;
   touch-action: pan-y;
   padding-right: 2px;
@@ -1231,81 +1015,17 @@ button:hover,
 
 .dialog-checklist-row {
   display: grid;
-  grid-template-columns: 24px 28px 28px 24px minmax(0, 1fr) 112px 54px 34px;
-  grid-template-areas:
-    "drag up down check text text text remove"
-    ". . . . due due signal remove";
-  align-items: start;
-  gap: 7px;
+  grid-template-columns: 28px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 9px;
   min-height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 7px 8px;
+  padding: 7px 10px;
   background: white;
 }
 
-.dialog-checklist-row.is-dragging-task {
-  opacity: 0.58;
-}
-
-.dialog-checklist-row.is-drop-target {
-  border-color: rgba(78, 141, 134, 0.56);
-  box-shadow: inset 0 0 0 1px rgba(78, 141, 134, 0.3);
-}
-
-.drag-task {
-  grid-area: drag;
-  display: inline-grid;
-  place-items: center;
-  min-height: 28px;
-  width: 24px;
-  border-radius: 999px;
-  color: rgba(43, 37, 33, 0.42);
-  font-size: 0.84rem;
-  font-weight: 900;
-  letter-spacing: 0;
-  cursor: grab;
-  user-select: none;
-}
-
-.dialog-checklist-row:active .drag-task {
-  cursor: grabbing;
-}
-
-.dialog-checklist-row > .drag-task,
-.dialog-checklist-row > .move-task,
-.dialog-checklist-row > input[type="checkbox"],
-.dialog-checklist-row > .task-due,
-.dialog-checklist-row > .due-signal,
-.dialog-checklist-row > .remove-task {
-  align-self: start;
-}
-
-.move-task {
-  display: inline-grid;
-  place-items: center;
-  min-height: 28px;
-  width: 28px;
-  border-radius: 999px;
-  padding: 0;
-  color: var(--muted);
-  background: #fffaf0;
-}
-
-.move-task:disabled {
-  opacity: 0.32;
-}
-
-.move-task.is-up {
-  grid-area: up;
-}
-
-.move-task.is-down {
-  grid-area: down;
-}
-
 .remove-task {
-  grid-area: remove;
   display: inline-grid;
   place-items: center;
   min-height: 30px;
@@ -1320,37 +1040,12 @@ button:hover,
 }
 
 .dialog-checklist-row input[type="checkbox"] {
-  grid-area: check;
   width: 18px;
   height: 18px;
   accent-color: var(--accent);
 }
 
-.dialog-checklist-row .task-text {
-  grid-area: text;
-  min-height: 30px;
-  border: 0;
-  padding: 5px 0 3px;
-  color: var(--ink);
-  background: transparent;
-  outline: none;
-  font: inherit;
-  line-height: 1.35;
-  overflow: hidden;
-  resize: none;
-}
-
-.dialog-checklist-row .task-due {
-  grid-area: due;
-  width: 112px;
-  border-left: 1px solid var(--line);
-  padding-left: 8px;
-  color: #8a6250;
-  font-size: 0.78rem;
-  font-weight: 800;
-}
-
-.dialog-checklist-row input[type="date"] {
+.dialog-checklist-row input[type="text"] {
   min-height: 30px;
   border: 0;
   color: var(--ink);
@@ -1463,7 +1158,7 @@ button:hover,
     grid-column: 1 / -1;
   }
 
-  .tag-filters {
+  .sticker-filters {
     max-width: 100%;
   }
 
@@ -1528,22 +1223,15 @@ button:hover,
   }
 
   .checklist-preview {
-    gap: 5px;
-    padding: 0 4px 22px 0;
+    gap: 3px;
+    padding-bottom: 20px;
   }
 
   .checklist-row {
     grid-template-columns: 14px minmax(0, 1fr);
-    column-gap: 5px;
-    row-gap: 2px;
+    gap: 5px;
     min-height: 17px;
     font-size: 0.62rem;
-  }
-
-  .checklist-row .due-chip {
-    min-height: 15px;
-    padding: 2px 5px;
-    font-size: 0.48rem;
   }
 
   .checklist-row input[type="checkbox"] {
@@ -1556,7 +1244,7 @@ button:hover,
     font-size: 0.52rem;
   }
 
-  .note-tag {
+  .note-sticker {
     right: 8px;
     bottom: 8px;
     min-height: 20px;
@@ -1564,7 +1252,7 @@ button:hover,
     font-size: 0.52rem;
   }
 
-  .note-tag::before {
+  .note-sticker::before {
     left: 6px;
     width: 8px;
     height: 8px;
@@ -1641,29 +1329,5 @@ button:hover,
 
   .dialog-controls {
     grid-template-columns: 1fr;
-  }
-
-  .dialog-checklist-row {
-    grid-template-columns: 24px 28px 28px 24px minmax(0, 1fr) 34px;
-    grid-template-areas:
-      "drag up down check text remove"
-      ". . . . due remove"
-      ". . . . signal remove";
-  }
-
-  .dialog-checklist-row .task-due {
-    width: 100%;
-    border-left: 0;
-    border-top: 1px solid var(--line);
-    padding-top: 5px;
-    padding-left: 0;
-  }
-
-  .dialog-checklist-row .remove-task {
-    grid-row: 1 / 4;
-  }
-
-  .dialog-checklist-row .due-signal {
-    width: fit-content;
   }
 }

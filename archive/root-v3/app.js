@@ -1,20 +1,14 @@
-const NOTES_KEY = "pinpad.v4.notes";
-const SETTINGS_KEY = "pinpad.v4.settings";
+const NOTES_KEY = "pinpad.v3.notes";
+const SETTINGS_KEY = "pinpad.v3.settings";
 const COLORS = ["butter", "mint", "sky", "peach", "lilac"];
 const TYPES = ["plain", "checklist", "quote", "tiny"];
-const TAGS = {
-  none: { label: "No tag", text: "" },
+const STICKERS = {
+  none: { label: "No sticker", text: "" },
   idea: { label: "Idea", text: "idea" },
   focus: { label: "Focus", text: "focus" },
-  personal: { label: "Personal", text: "personal" },
-  work: { label: "Work", text: "work" },
-  shopping: { label: "Shopping", text: "shopping" }
-};
-const LEGACY_TAG_MAP = {
-  saved: "personal",
-  later: "work",
-  soft: "personal",
-  shop: "shopping"
+  saved: { label: "Saved", text: "save" },
+  later: { label: "Later", text: "later" },
+  soft: { label: "Soft", text: "soft" }
 };
 const DEFAULT_SETTINGS = {
   boardTitle: "pinpad : TOPSIRA",
@@ -31,7 +25,7 @@ const importInput = document.querySelector("#importNotes");
 const resetButton = document.querySelector("#resetBoard");
 const fileMenu = document.querySelector(".file-menu");
 const searchInput = document.querySelector("#searchInput");
-const tagFilters = document.querySelector("#tagFilters");
+const stickerFilters = document.querySelector("#stickerFilters");
 const noteCount = document.querySelector("#noteCount");
 const boardTitle = document.querySelector("#boardTitle");
 const noteDialog = document.querySelector("#noteDialog");
@@ -42,14 +36,11 @@ const formatToolbar = document.querySelector("#formatToolbar");
 const textColor = document.querySelector("#textColor");
 const highlightColor = document.querySelector("#highlightColor");
 const listStyle = document.querySelector("#listStyle");
-const fontSize = document.querySelector("#fontSize");
-const insertVisualCheck = document.querySelector("#insertVisualCheck");
 const dialogColor = document.querySelector("#dialogColor");
 const dialogType = document.querySelector("#dialogType");
-const dialogTag = document.querySelector("#dialogTag");
+const dialogSticker = document.querySelector("#dialogSticker");
 const dialogChecklist = document.querySelector("#dialogChecklist");
 const dialogChecklistItems = document.querySelector("#dialogChecklistItems");
-const checklistProgress = document.querySelector("#checklistProgress");
 const addChecklistItem = document.querySelector("#addChecklistItem");
 const bringForwardButton = document.querySelector("#bringForward");
 const dialogDelete = document.querySelector("#dialogDelete");
@@ -107,24 +98,19 @@ let topZ = Math.max(1, ...notes.map((note) => note.z || 1));
 let dragging = null;
 let activeNoteId = null;
 let bubbleTimer = null;
-let activeTagFilter = "all";
+let activeStickerFilter = "all";
 let savedRichRange = null;
-let draggingTaskIndex = null;
 
 function sampleNotes() {
   const now = new Date().toISOString();
-  const today = dateOffset(0);
-  const tomorrow = dateOffset(1);
-  const soon = dateOffset(3);
-  const overdue = dateOffset(-1);
   return [
     {
       id: crypto.randomUUID(),
       title: "Inbox",
-      body: "Drop quick thoughts here. Try <u>underline</u>, <s>strike</s>, quote blocks, and <span class=\"visual-check\" data-checked=\"true\" contenteditable=\"false\"></span> visual boxes.",
+      body: "Drop quick thoughts here. Tap me on mobile for a clear view.",
       type: "plain",
       color: "butter",
-      tag: "idea",
+      sticker: "idea",
       x: 70,
       y: 70,
       z: 1,
@@ -134,10 +120,10 @@ function sampleNotes() {
     {
       id: crypto.randomUUID(),
       title: "Saved quote",
-      body: "<blockquote>Keep the board calm. Let tiny things carry the personality.</blockquote>",
+      body: "Keep the board calm. Let tiny things carry the personality.",
       type: "quote",
       color: "mint",
-      tag: "personal",
+      sticker: "saved",
       x: 360,
       y: 118,
       z: 2,
@@ -147,18 +133,11 @@ function sampleNotes() {
     {
       id: crypto.randomUUID(),
       title: "Today checklist",
-      body: "Review v4 tags\nTry due labels\nReorder tasks\nCheck progress",
+      body: "Review live board\nPick sticker names\nTry memory cards\nDecide next polish pass",
       type: "checklist",
       color: "sky",
-      tag: "focus",
+      sticker: "focus",
       checked: [0],
-      tasks: [
-        { text: "Review v4 tags", done: true, due: today },
-        { text: "Try due dates", done: false, due: today },
-        { text: "Reorder tasks", done: false, due: tomorrow },
-        { text: "Check progress", done: false, due: soon },
-        { text: "Review overdue state", done: false, due: overdue }
-      ],
       x: 180,
       y: 335,
       z: 3,
@@ -168,10 +147,10 @@ function sampleNotes() {
     {
       id: crypto.randomUUID(),
       title: "Tiny paper",
-      body: "shopping list",
+      body: "later",
       type: "tiny",
       color: "peach",
-      tag: "shopping",
+      sticker: "later",
       x: 420,
       y: 285,
       z: 4,
@@ -228,9 +207,8 @@ function createNote(overrides = {}) {
     body: "",
     type: "plain",
     color: COLORS[notes.length % COLORS.length],
-    tag: "none",
+    sticker: "none",
     checked: [],
-    tasks: [],
     x: Math.max(22, Math.min(120 + notes.length * 24, logicalWidth - 250)),
     y: Math.max(22, Math.min(90 + notes.length * 24, logicalHeight - 210)),
     z: ++topZ,
@@ -261,13 +239,13 @@ function renderNote(note) {
   const element = fragment.querySelector(".note");
   const title = fragment.querySelector(".note-title");
   const body = fragment.querySelector(".note-body");
-  const tagBadge = fragment.querySelector(".note-tag");
+  const stickerBadge = fragment.querySelector(".note-sticker");
   const checklistPreview = fragment.querySelector(".checklist-preview");
   const open = fragment.querySelector(".open-note");
 
   element.dataset.noteId = note.id;
   element.dataset.color = note.color;
-  element.dataset.tag = note.tag;
+  element.dataset.sticker = note.sticker;
   element.dataset.type = note.type;
   const scale = boardScale();
   element.style.left = `${note.x * scale}px`;
@@ -278,8 +256,8 @@ function renderNote(note) {
   title.readOnly = true;
   body.innerHTML = note.type === "checklist" ? "" : sanitizeRichText(note.body || "");
   body.dataset.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
-  tagBadge.textContent = TAGS[note.tag].text;
-  tagBadge.hidden = note.tag === "none";
+  stickerBadge.textContent = STICKERS[note.sticker].text;
+  stickerBadge.hidden = note.sticker === "none";
   renderChecklistPreview(checklistPreview, note);
 
   element.addEventListener("pointerdown", startDrag);
@@ -397,7 +375,6 @@ function isOverTrash(clientX, clientY) {
 function openNote(id) {
   const note = notes.find((item) => item.id === id);
   if (!note) return;
-  if (note.type === "checklist") normalizeChecklistState(note);
 
   activeNoteId = id;
   dialogTitle.value = note.title;
@@ -405,7 +382,7 @@ function openNote(id) {
   dialogRichBody.innerHTML = sanitizeRichText(note.body || "");
   dialogColor.value = note.color;
   dialogType.value = note.type;
-  dialogTag.value = note.tag;
+  dialogSticker.value = note.sticker;
   dialogBody.placeholder = note.type === "checklist" ? "One task per line" : "Write something...";
   syncDialogMode(note);
   if (!noteDialog.open) noteDialog.showModal();
@@ -450,41 +427,16 @@ function applyRichCommand(command, value = null) {
   syncDialogNote({ body: dialogRichBody.innerHTML });
 }
 
-function insertVisualCheckbox() {
-  applyRichCommand("insertHTML", `<span class="visual-check" data-checked="false" contenteditable="false"></span>&nbsp;`);
-}
-
-function toggleVisualCheckbox(element) {
-  const checked = element.dataset.checked === "true";
-  element.dataset.checked = checked ? "false" : "true";
-}
-
-function handleVisualCheckboxClick(event) {
-  const visualCheck = event.target.closest(".visual-check");
-  if (!visualCheck) return;
-  event.preventDefault();
-  event.stopPropagation();
-  toggleVisualCheckbox(visualCheck);
-  if (dialogRichBody.contains(visualCheck)) {
-    syncDialogNote({ body: dialogRichBody.innerHTML });
-    return;
-  }
-  const noteElement = event.target.closest(".note");
-  const noteBody = event.target.closest(".note-body");
-  if (noteElement && noteBody) updateNote(noteElement.dataset.noteId, { body: noteBody.innerHTML });
-}
-
 function applySearch() {
   const query = searchInput.value.trim().toLowerCase();
   document.querySelectorAll(".note").forEach((element) => {
     const id = element.dataset.noteId;
     const note = notes.find((item) => item.id === id);
-    const tag = TAGS[note.tag]?.label || "";
-    const taskText = checklistTasks(note).map((task) => `${task.text} ${task.due}`).join(" ");
-    const haystack = `${note.title} ${plainText(note.body)} ${tag} ${taskText} ${note.type}`.toLowerCase();
+    const sticker = STICKERS[note.sticker]?.label || "";
+    const haystack = `${note.title} ${plainText(note.body)} ${sticker} ${note.type}`.toLowerCase();
     const matchesQuery = query.length === 0 || haystack.includes(query);
-    const matchesTag = activeTagFilter === "all" || note.tag === activeTagFilter;
-    element.classList.toggle("is-hidden", !matchesQuery || !matchesTag);
+    const matchesSticker = activeStickerFilter === "all" || note.sticker === activeStickerFilter;
+    element.classList.toggle("is-hidden", !matchesQuery || !matchesSticker);
   });
   updateCount();
 }
@@ -523,28 +475,20 @@ function importNotes(event) {
 
 function normalizeNote(note, index = 0) {
   const now = new Date().toISOString();
-  const tag = normalizeTag(note.tag || note.sticker);
-  const body = typeof note.body === "string" ? note.body : "";
   return {
     id: typeof note.id === "string" ? note.id : crypto.randomUUID(),
     title: typeof note.title === "string" ? note.title : "Untitled",
-    body,
+    body: typeof note.body === "string" ? note.body : "",
     type: TYPES.includes(note.type) ? note.type : "plain",
     color: COLORS.includes(note.color) ? note.color : COLORS[index % COLORS.length],
-    tag,
+    sticker: STICKERS[note.sticker] ? note.sticker : "none",
     checked: Array.isArray(note.checked) ? note.checked.filter(Number.isFinite) : [],
-    tasks: normalizeTasks(note.tasks, body, note.checked),
     x: Number.isFinite(note.x) ? note.x : 80 + index * 24,
     y: Number.isFinite(note.y) ? note.y : 80 + index * 24,
     z: Number.isFinite(note.z) ? note.z : index + 1,
     createdAt: typeof note.createdAt === "string" ? note.createdAt : now,
     updatedAt: now
   };
-}
-
-function normalizeTag(value) {
-  const mapped = LEGACY_TAG_MAP[value] || value || "none";
-  return TAGS[mapped] ? mapped : "none";
 }
 
 function showCharacterMessage() {
@@ -575,80 +519,6 @@ function openMemory(key) {
   if (!memoryDialog.open) memoryDialog.showModal();
 }
 
-function checklistTasks(note) {
-  if (Array.isArray(note.tasks) && note.tasks.length) return note.tasks;
-  return normalizeTasks(note.tasks, note.body, note.checked);
-}
-
-function normalizeChecklistState(note) {
-  const tasks = checklistTasks(note);
-  note.tasks = tasks;
-  note.body = syncTaskBody(tasks);
-  note.checked = checkedFromTasks(tasks);
-  return note;
-}
-
-function normalizeTasks(tasks, body = "", checked = []) {
-  if (Array.isArray(tasks) && tasks.length) {
-    return tasks.map((task, index) => ({
-      text: typeof task.text === "string" ? task.text : `Task ${index + 1}`,
-      done: Boolean(task.done),
-      due: normalizeDueDate(task.due)
-    }));
-  }
-  const checkedItems = new Set(Array.isArray(checked) ? checked : []);
-  return body.split("\n")
-    .map((text, index) => ({ text: text.trim(), done: checkedItems.has(index), due: "" }))
-    .filter((task) => task.text);
-}
-
-function syncTaskBody(tasks) {
-  return tasks.map((task) => task.text).join("\n");
-}
-
-function checkedFromTasks(tasks) {
-  return tasks.reduce((result, task, index) => {
-    if (task.done) result.push(index);
-    return result;
-  }, []);
-}
-
-function checklistProgressText(note) {
-  const tasks = checklistTasks(note);
-  if (!tasks.length) return "0/0 done";
-  const done = tasks.filter((task) => task.done).length;
-  return `${done}/${tasks.length} done`;
-}
-
-function dateOffset(days) {
-  const date = new Date();
-  date.setHours(12, 0, 0, 0);
-  date.setDate(date.getDate() + days);
-  return date.toISOString().slice(0, 10);
-}
-
-function normalizeDueDate(value) {
-  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : "";
-}
-
-function dueState(due, done = false) {
-  if (!due || done) return { key: "none", label: "", title: "" };
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const dueDate = new Date(`${due}T00:00:00`);
-  const days = Math.round((dueDate - today) / 86400000);
-  if (days < 0) return { key: "overdue", label: "!", title: "Overdue" };
-  if (days === 0) return { key: "today", label: "Today", title: "Due today" };
-  if (days <= 3) return { key: "soon", label: "Soon", title: "Due soon" };
-  return { key: "upcoming", label: "Due", title: "Upcoming due date" };
-}
-
-function formatDueDate(due) {
-  if (!due) return "";
-  const date = new Date(`${due}T00:00:00`);
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
 function renderChecklistPreview(container, note) {
   if (note.type !== "checklist") {
     container.hidden = true;
@@ -656,65 +526,53 @@ function renderChecklistPreview(container, note) {
     return;
   }
 
-  const tasks = checklistTasks(note);
+  const items = note.body.split("\n").map((item, index) => ({ text: item.trim(), index })).filter((item) => item.text);
   container.hidden = false;
-  const meter = document.createElement("div");
-  meter.className = "note-progress";
-  meter.innerHTML = `<span></span><strong>${checklistProgressText(note)}</strong>`;
-  meter.querySelector("span").style.width = `${progressPercent(tasks)}%`;
-
-  const rows = tasks.map((task, index) => {
+  container.replaceChildren(...items.map((item) => {
     const row = document.createElement("label");
     row.className = "checklist-row";
-    row.classList.toggle("is-checked", task.done);
+    const checkedItems = Array.isArray(note.checked) ? note.checked : [];
+    const checked = checkedItems.includes(item.index);
+    row.classList.toggle("is-checked", checked);
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = task.done;
-    checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
+    checkbox.checked = checked;
+    checkbox.addEventListener("change", () => toggleChecklistItem(note.id, item.index, checkbox.checked));
     const text = document.createElement("span");
-    text.className = "checklist-text";
-    text.textContent = task.text;
-    const due = dueState(task.due, task.done);
-    const dueBadge = document.createElement("span");
-    dueBadge.className = `due-chip is-${due.key}`;
-    dueBadge.title = due.title;
-    dueBadge.hidden = due.key === "none";
-    dueBadge.textContent = due.key === "overdue" ? `! ${formatDueDate(task.due)}` : `${due.label} ${formatDueDate(task.due)}`;
-    dueBadge.setAttribute("aria-label", due.title ? `${due.title}: ${formatDueDate(task.due)}` : "");
-    row.append(checkbox, text, dueBadge);
+    text.textContent = item.text;
+    row.append(checkbox, text);
     return row;
-  });
-  container.replaceChildren(meter, ...rows);
+  }));
 }
 
 function toggleChecklistItem(noteId, index, checked) {
   const note = notes.find((item) => item.id === noteId);
   if (!note) return;
-  const tasks = checklistTasks(note).map((task, taskIndex) => taskIndex === index ? { ...task, done: checked } : task);
-  updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
+  const checkedItems = new Set(Array.isArray(note.checked) ? note.checked : []);
+  if (checked) {
+    checkedItems.add(index);
+  } else {
+    checkedItems.delete(index);
+  }
+  updateNote(noteId, { checked: [...checkedItems].sort((a, b) => a - b) }, true);
   if (activeNoteId === noteId) renderDialogChecklist(activeNote());
 }
 
-function progressPercent(tasks) {
-  if (!tasks.length) return 0;
-  return Math.round((tasks.filter((task) => task.done).length / tasks.length) * 100);
-}
-
-function renderTagFilters() {
+function renderStickerFilters() {
   const filters = [
     ["all", "All"],
-    ...Object.entries(TAGS).filter(([key]) => key !== "none").map(([key, tag]) => [key, tag.label])
+    ...Object.entries(STICKERS).filter(([key]) => key !== "none").map(([key, sticker]) => [key, sticker.label])
   ];
-  tagFilters.replaceChildren(...filters.map(([key, label]) => {
+  stickerFilters.replaceChildren(...filters.map(([key, label]) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "filter-chip";
     button.dataset.filter = key;
     button.textContent = label;
-    button.setAttribute("aria-pressed", String(activeTagFilter === key));
+    button.setAttribute("aria-pressed", String(activeStickerFilter === key));
     button.addEventListener("click", () => {
-      activeTagFilter = key;
-      renderTagFilters();
+      activeStickerFilter = key;
+      renderStickerFilters();
       applySearch();
     });
     return button;
@@ -733,117 +591,31 @@ function syncDialogMode(note = activeNote()) {
 
 function renderDialogChecklist(note = activeNote()) {
   if (!note) return;
-  const tasks = checklistTasks(note);
-  const visibleTasks = tasks.length ? tasks : [{ text: "", done: false, due: "" }];
-  checklistProgress.innerHTML = `<span class="progress-track"><span style="width: ${progressPercent(tasks)}%"></span></span><strong>${checklistProgressText(note)}</strong>`;
+  const items = note.body.split("\n");
+  const visibleItems = items.length ? items : [""];
 
-  dialogChecklistItems.replaceChildren(...visibleTasks.map((task, index) => {
+  dialogChecklistItems.replaceChildren(...visibleItems.map((item, index) => {
     const row = document.createElement("label");
     row.className = "dialog-checklist-row";
-    row.dataset.taskIndex = String(index);
-    row.draggable = tasks.length > 1;
-    row.addEventListener("dragstart", (event) => {
-      draggingTaskIndex = index;
-      row.classList.add("is-dragging-task");
-      event.dataTransfer.effectAllowed = "move";
-      event.dataTransfer.setData("text/plain", String(index));
-    });
-    row.addEventListener("dragover", (event) => {
-      if (draggingTaskIndex === null || draggingTaskIndex === index) return;
-      event.preventDefault();
-      row.classList.add("is-drop-target");
-      event.dataTransfer.dropEffect = "move";
-    });
-    row.addEventListener("dragleave", () => {
-      row.classList.remove("is-drop-target");
-    });
-    row.addEventListener("drop", (event) => {
-      event.preventDefault();
-      row.classList.remove("is-drop-target");
-      const fromIndex = Number(event.dataTransfer.getData("text/plain"));
-      const sourceIndex = Number.isFinite(fromIndex) ? fromIndex : draggingTaskIndex;
-      reorderChecklistItem(note.id, sourceIndex, index);
-      draggingTaskIndex = null;
-    });
-    row.addEventListener("dragend", () => {
-      draggingTaskIndex = null;
-      row.classList.remove("is-dragging-task", "is-drop-target");
-    });
-
-    const dragHandle = document.createElement("span");
-    dragHandle.className = "drag-task";
-    dragHandle.title = "Drag to reorder";
-    dragHandle.textContent = "⋮⋮";
-    dragHandle.setAttribute("aria-hidden", "true");
-
-    const moveUp = document.createElement("button");
-    moveUp.type = "button";
-    moveUp.className = "move-task";
-    moveUp.classList.add("is-up");
-    moveUp.title = "Move task up";
-    moveUp.textContent = "↑";
-    moveUp.disabled = index === 0;
-    moveUp.addEventListener("click", (event) => {
-      event.preventDefault();
-      moveChecklistItem(note.id, index, -1);
-    });
-
-    const moveDown = document.createElement("button");
-    moveDown.type = "button";
-    moveDown.className = "move-task";
-    moveDown.classList.add("is-down");
-    moveDown.title = "Move task down";
-    moveDown.textContent = "↓";
-    moveDown.disabled = index === visibleTasks.length - 1;
-    moveDown.addEventListener("click", (event) => {
-      event.preventDefault();
-      moveChecklistItem(note.id, index, 1);
-    });
 
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
-    checkbox.checked = task.done;
+    const checkedItems = Array.isArray(note.checked) ? note.checked : [];
+    checkbox.checked = checkedItems.includes(index);
     checkbox.addEventListener("change", () => toggleChecklistItem(note.id, index, checkbox.checked));
 
-    const input = document.createElement("textarea");
-    input.className = "task-text";
-    input.rows = 1;
-    input.value = task.text;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.value = item;
     input.placeholder = "Task";
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") event.preventDefault();
-    });
     input.addEventListener("input", () => {
       const current = activeNote();
       if (!current) return;
-      const nextTasks = checklistTasks(current);
-      const text = input.value.replace(/\s*\n+\s*/g, " ");
-      if (text !== input.value) input.value = text;
-      resizeTaskText(input);
-      nextTasks[index] = { ...(nextTasks[index] || { done: false, due: "" }), text };
-      updateNote(current.id, { tasks: nextTasks, body: syncTaskBody(nextTasks), checked: checkedFromTasks(nextTasks) }, true);
+      const nextItems = current.body.split("\n");
+      nextItems[index] = input.value;
+      const nextChecked = remapCheckedAfterEdit(current.checked, nextItems);
+      updateNote(current.id, { body: nextItems.join("\n"), checked: nextChecked }, true);
     });
-    requestAnimationFrame(() => resizeTaskText(input));
-
-    const due = document.createElement("input");
-    due.type = "date";
-    due.className = "task-due";
-    due.value = task.due;
-    due.setAttribute("aria-label", "Due label");
-    due.addEventListener("change", () => {
-      const current = activeNote();
-      if (!current) return;
-      const nextTasks = checklistTasks(current);
-      nextTasks[index] = { ...(nextTasks[index] || { text: "", done: false }), due: due.value };
-      updateNote(current.id, { tasks: nextTasks, body: syncTaskBody(nextTasks), checked: checkedFromTasks(nextTasks) }, true);
-    });
-
-    const status = dueState(task.due, task.done);
-    const dueSignal = document.createElement("span");
-    dueSignal.className = `due-signal is-${status.key}`;
-    dueSignal.title = status.title;
-    dueSignal.hidden = status.key === "none";
-    dueSignal.textContent = status.key === "overdue" ? "!" : status.label;
 
     const remove = document.createElement("button");
     remove.type = "button";
@@ -855,46 +627,25 @@ function renderDialogChecklist(note = activeNote()) {
       removeChecklistItem(note.id, index);
     });
 
-    row.append(dragHandle, moveUp, moveDown, checkbox, input, due, dueSignal, remove);
+    row.append(checkbox, input, remove);
     return row;
   }));
-}
-
-function resizeTaskText(input) {
-  input.style.height = "auto";
-  input.style.height = `${Math.max(30, input.scrollHeight)}px`;
 }
 
 function removeChecklistItem(noteId, index) {
   const note = notes.find((item) => item.id === noteId);
   if (!note) return;
-  const tasks = checklistTasks(note);
-  tasks.splice(index, 1);
-  updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
+  const items = note.body.split("\n");
+  items.splice(index, 1);
+  const checked = (Array.isArray(note.checked) ? note.checked : [])
+    .filter((item) => item !== index)
+    .map((item) => item > index ? item - 1 : item);
+  updateNote(noteId, { body: items.join("\n"), checked }, true);
   renderDialogChecklist(activeNote());
 }
 
-function moveChecklistItem(noteId, index, direction) {
-  const note = notes.find((item) => item.id === noteId);
-  if (!note) return;
-  const tasks = checklistTasks(note);
-  const nextIndex = index + direction;
-  if (nextIndex < 0 || nextIndex >= tasks.length) return;
-  const [task] = tasks.splice(index, 1);
-  tasks.splice(nextIndex, 0, task);
-  updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
-  renderDialogChecklist(activeNote());
-}
-
-function reorderChecklistItem(noteId, fromIndex, toIndex) {
-  const note = notes.find((item) => item.id === noteId);
-  if (!note || fromIndex === null || toIndex === null) return;
-  const tasks = checklistTasks(note);
-  if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || fromIndex >= tasks.length || toIndex >= tasks.length) return;
-  const [task] = tasks.splice(fromIndex, 1);
-  tasks.splice(toIndex, 0, task);
-  updateNote(noteId, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
-  renderDialogChecklist(activeNote());
+function remapCheckedAfterEdit(checkedItems) {
+  return Array.isArray(checkedItems) ? checkedItems.filter(Number.isFinite) : [];
 }
 
 function sanitizeRichText(value) {
@@ -951,7 +702,7 @@ function boardScale() {
 }
 
 syncTitle();
-renderTagFilters();
+renderStickerFilters();
 render();
 
 boardTitle.addEventListener("input", (event) => {
@@ -971,12 +722,7 @@ addChecklistButton.addEventListener("click", () => createNote({
   title: "Checklist",
   body: "First thing\nSecond thing\nTiny win",
   type: "checklist",
-  tag: "focus",
-  tasks: [
-    { text: "First thing", done: false, due: dateOffset(0) },
-    { text: "Second thing", done: false, due: "" },
-    { text: "Tiny win", done: false, due: "" }
-  ]
+  sticker: "focus"
 }));
 exportButton.addEventListener("click", exportNotes);
 importInput.addEventListener("change", importNotes);
@@ -999,7 +745,6 @@ dialogRichBody.addEventListener("input", () => {
   saveRichSelection();
   syncDialogNote({ body: dialogRichBody.innerHTML });
 });
-dialogRichBody.addEventListener("click", handleVisualCheckboxClick);
 dialogRichBody.addEventListener("keyup", saveRichSelection);
 dialogRichBody.addEventListener("mouseup", saveRichSelection);
 dialogRichBody.addEventListener("blur", saveRichSelection);
@@ -1024,35 +769,25 @@ listStyle.addEventListener("change", (event) => {
   applyRichCommand(event.target.value);
   event.target.value = "";
 });
-fontSize.addEventListener("change", (event) => {
-  if (!event.target.value) return;
-  applyRichCommand("fontSize", event.target.value);
-  event.target.value = "";
-});
-insertVisualCheck.addEventListener("click", insertVisualCheckbox);
-board.addEventListener("click", handleVisualCheckboxClick);
 dialogColor.addEventListener("change", (event) => syncDialogNote({ color: event.target.value }));
 dialogType.addEventListener("change", (event) => {
   dialogBody.placeholder = event.target.value === "checklist" ? "One task per line" : "Write something...";
   const patch = { type: event.target.value };
   if (event.target.value === "checklist" && !dialogBody.value.trim()) {
     patch.body = "First task";
-    patch.tasks = [{ text: "First task", done: false, due: "" }];
     dialogBody.value = patch.body;
-  } else if (event.target.value === "checklist") {
-    patch.tasks = normalizeTasks([], dialogRichBody.textContent || dialogBody.value, []);
   } else if (event.target.value !== "checklist") {
     patch.body = dialogRichBody.innerHTML || dialogBody.value;
   }
   syncDialogNote(patch);
   syncDialogMode();
 });
-dialogTag.addEventListener("change", (event) => syncDialogNote({ tag: event.target.value }));
+dialogSticker.addEventListener("change", (event) => syncDialogNote({ sticker: event.target.value }));
 addChecklistItem.addEventListener("click", () => {
   const note = activeNote();
   if (!note) return;
-  const tasks = [...checklistTasks(note), { text: "New task", done: false, due: "" }];
-  updateNote(note.id, { tasks, body: syncTaskBody(tasks), checked: checkedFromTasks(tasks) }, true);
+  const nextBody = `${note.body}${note.body.trim() ? "\n" : ""}New task`;
+  updateNote(note.id, { body: nextBody }, true);
   renderDialogChecklist(activeNote());
 });
 bringForwardButton.addEventListener("click", () => {
